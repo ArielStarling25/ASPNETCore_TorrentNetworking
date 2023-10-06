@@ -33,9 +33,23 @@ namespace WebServer.Models.DataHold
             bool returnVal = false;
             foreach(ClientInfo clientInfo in clientData)
             {
-                if (clientInfo.ipAddr.Equals(client.ipAddr) && (clientInfo.portNum == client.portNum))
+                if (clientInfo.clientId == client.clientId)
                 {
                     returnVal = true;
+                    break;
+                }
+            }
+            return returnVal;
+        }
+
+        public static ClientInfo getClientById(int clientId)
+        {
+            ClientInfo returnVal = null;
+            foreach(ClientInfo clientInfo in clientData)
+            {
+                if (clientInfo.clientId == clientId)
+                {
+                    returnVal = clientInfo;
                     break;
                 }
             }
@@ -47,5 +61,9 @@ namespace WebServer.Models.DataHold
             jobPostData.Add(jobPost);
         }
 
+        public static List<ClientInfo> GetClients()
+        {
+            return clientData;
+        }
     }
 }
