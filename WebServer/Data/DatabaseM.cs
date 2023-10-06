@@ -225,7 +225,7 @@ namespace WebServer.Data
             return dataList;
         }
 
-        public static JobPost getByAccNo(int JobId)
+        public static JobPost getByJobId(int JobId)
         {
             JobPost data = null;
             try
