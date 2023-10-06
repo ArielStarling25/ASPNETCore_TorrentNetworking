@@ -24,7 +24,8 @@ namespace WebServer.Data
                         "FromClient TEXT, " +
                         "ToClient TEXT, " +
                         "Job TEXT, " +
-                        "JobSuccess INTEGER)";
+                        "JobSuccess INTEGER, " +
+                        "JobResult TEXT)";
 
                         command.ExecuteNonQuery();
                         conn.Close();
@@ -55,14 +56,15 @@ namespace WebServer.Data
                     using (SQLiteCommand command = conn.CreateCommand())
                     {
                         command.CommandText = @"
-                        INSERT INTO " + tableName + " (FromClient, ToClient, Job, JobSuccess) " +
-                        "VALUES (@FromClient, @ToClient, @Job, @JobSuccess)";
+                        INSERT INTO " + tableName + " (FromClient, ToClient, Job, JobSuccess, JobResult) " +
+                        "VALUES (@FromClient, @ToClient, @Job, @JobSuccess, @JobResult)";
 
                         //command.Parameters.AddWithValue("@JobId", data.JobId);
                         command.Parameters.AddWithValue("@FromClient", data.FromClient);
                         command.Parameters.AddWithValue("@ToClient", data.ToClient);
                         command.Parameters.AddWithValue("@Job", data.Job);
                         command.Parameters.AddWithValue("@JobSuccess", data.JobSuccess);
+                        command.Parameters.AddWithValue("@JobResult", data.JobResult);
 
                         int rowReturn = command.ExecuteNonQuery();
 
@@ -146,11 +148,13 @@ namespace WebServer.Data
                             " ToClient = @ToClient," +
                             " Job = @Job," +
                             " JobSuccess = @JobSuccess" +
+                            " JobResult = @JobResult" +
                             " WHERE JobId = @JobId";
                         command.Parameters.AddWithValue("@FromClient", data.FromClient);
                         command.Parameters.AddWithValue("@ToClient", data.ToClient);
                         command.Parameters.AddWithValue("@Job", data.Job);
                         command.Parameters.AddWithValue("@JobSuccess", data.JobSuccess);
+                        command.Parameters.AddWithValue("@JobResult", data.JobResult);
                         command.Parameters.AddWithValue("@JobId", data.JobId);
 
                         int rowReturn = command.ExecuteNonQuery();
@@ -201,6 +205,7 @@ namespace WebServer.Data
                                 data.ToClient = Convert.ToInt32(reader["ToClient"]);
                                 data.Job = reader["Job"].ToString();
                                 data.JobSuccess = Convert.ToInt32(reader["JobSuccess"]);
+                                data.JobResult = reader["JobResult"].ToString();
 
                                 dataList.Add(data);
                             }
@@ -243,6 +248,7 @@ namespace WebServer.Data
                                 data.ToClient = Convert.ToInt32(reader["ToClient"]);
                                 data.Job = reader["Job"].ToString();
                                 data.JobSuccess = Convert.ToInt32(reader["JobSuccess"]);
+                                data.JobResult = reader["JobResult"].ToString();
                             }
                         }
                     }

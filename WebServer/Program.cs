@@ -24,6 +24,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 DatabaseStarter.startDatabase();
-
+LocalDataHold.GoStart();
 
 app.Run();
