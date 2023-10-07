@@ -13,16 +13,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
+using DataModel;
+using WebServer;
+
 namespace ClientWPF
 {
-    /// <summary>
-    /// Interaction logic for clientWindow.xaml
-    /// </summary>
     public partial class clientWindow : Window
     {
         public clientWindow(int clientId, int portNum)
         {
             InitializeComponent();
+            PeerToPeerSer
         }
     }
 }
