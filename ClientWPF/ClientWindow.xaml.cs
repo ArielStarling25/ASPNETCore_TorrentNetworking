@@ -21,9 +21,26 @@ namespace ClientWPF
     /// </summary>
     public partial class ClientWindow : Window
     {
-        public ClientWindow()
+        private readonly string webServerHttpUrl = "http://localhost:5254";
+        private string addressName = "Client-[clientId]";
+        private string netAddress = "net.tcp://localhost:[clientPortNum]/";
+
+        private ClientInfoMid clientInfo;
+        public ClientWindow(int clientId, int portNum)
         {
             InitializeComponent();
+            addressName = "Client-" + clientId;
+            netAddress = "net.tcp://localhost:" + portNum + "/";
+            clientInfo = new ClientInfoMid();
+            clientInfo.clientId = clientId;
+            clientInfo.portNum = portNum;
+            clientInfo.ipAddr = "localhost";
+            startClient();
+        }
+
+        private void startClient()
+        {
+            
         }
     }
 }

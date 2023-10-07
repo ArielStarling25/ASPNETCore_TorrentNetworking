@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataMidPoint", "DataMidPoin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientWPF", "ClientWPF\ClientWPF.csproj", "{9615132E-F8DC-4D18-8F0B-F046B8F9CEF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataMid", "DataMid\DataMid.csproj", "{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{9615132E-F8DC-4D18-8F0B-F046B8F9CEF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9615132E-F8DC-4D18-8F0B-F046B8F9CEF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9615132E-F8DC-4D18-8F0B-F046B8F9CEF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

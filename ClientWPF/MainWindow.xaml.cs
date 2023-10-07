@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-//using DataMidPoint;
+using DataMid;
 
 namespace ClientWPF
 {
@@ -18,11 +18,25 @@ namespace ClientWPF
         public MainWindow()
         {
             InitializeComponent();
+            Label_Warning.Content = "";
         }
 
         public void AddClient_Click(object sender, RoutedEventArgs e)
         {
-
+            Label_Warning.Content = "";
+            clientIdCounter++;
+            clientPortNum = clientPortNum + 100;
+            ClientWindow client = new ClientWindow(clientIdCounter, clientPortNum);
+            if(client == null)
+            {
+                Label_Warning.Content = "Failed to create a new Client!";
+                clientIdCounter--;
+                clientPortNum = clientPortNum - 100;
+            }
+            else
+            {
+                client.Show();
+            }
         }
     }
 }
