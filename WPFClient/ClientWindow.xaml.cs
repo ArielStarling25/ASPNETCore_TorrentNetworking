@@ -14,12 +14,9 @@ using System.Windows.Shapes;
 
 namespace WPFClient
 {
-    /// <summary>
-    /// Interaction logic for ClientWindow.xaml
-    /// </summary>
     public partial class ClientWindow : Window
     {
-        public ClientWindow()
+        public ClientWindow(int clientId, int portNum)
         {
             InitializeComponent();
         }
