@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataModel", "DataModel\Data
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientWPF", "ClientWPF\ClientWPF.csproj", "{F24FFD36-639E-4CE8-851D-8467242FC17A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataMidPoint", "DataMidPoint\DataMidPoint.csproj", "{FCCA6578-8781-4905-9899-4773918D5A04}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{F24FFD36-639E-4CE8-851D-8467242FC17A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F24FFD36-639E-4CE8-851D-8467242FC17A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F24FFD36-639E-4CE8-851D-8467242FC17A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCCA6578-8781-4905-9899-4773918D5A04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCCA6578-8781-4905-9899-4773918D5A04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCCA6578-8781-4905-9899-4773918D5A04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCCA6578-8781-4905-9899-4773918D5A04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

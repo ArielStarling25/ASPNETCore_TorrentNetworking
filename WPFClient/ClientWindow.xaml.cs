@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,18 +11,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-//using System.ServiceModel;
 
-//using DataMidPoint;
-
-namespace ClientWPF
+namespace WPFClient
 {
-    public partial class clientWindow : Window
+    /// <summary>
+    /// Interaction logic for ClientWindow.xaml
+    /// </summary>
+    public partial class ClientWindow : Window
     {
-        public clientWindow(int clientId, int portNum)
+        public ClientWindow()
         {
             InitializeComponent();
-            //JobMidPoint jobPoint = new JobMidPoint();
         }
     }
 }
