@@ -19,6 +19,35 @@ namespace WebServer.Models.DataHold
             }
         }
 
+        public static void GoMockAndStart() 
+        {
+            clientData = new List<ClientInfo>();
+
+            ClientInfo c1 = new ClientInfo();
+            c1.clientId = 01;
+            c1.ipAddr = "net.tcp://localhost:";
+            c1.portNum = 1000;
+            clientData.Add(c1);
+
+            ClientInfo c2 = new ClientInfo();
+            c2.clientId = 02;
+            c2.ipAddr = "net.tcp://localhost:";
+            c2.portNum = 2000;
+            clientData.Add(c2);
+
+            ClientInfo c3 = new ClientInfo();
+            c3.clientId = 03;
+            c3.ipAddr = "net.tcp://localhost:";
+            c3.portNum = 3000;
+            clientData.Add(c3);
+
+            jobPostData = DatabaseM.getAll();
+            if (jobPostData == null)
+            {
+                jobPostData = new List<JobPost>();
+            }
+        }
+
         public static bool addClient(ClientInfo client)
         {
             bool result = false;
