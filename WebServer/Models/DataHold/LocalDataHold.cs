@@ -1,5 +1,6 @@
 ﻿using WebServer.Models.DataModels;
 using WebServer.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WebServer.Models.DataHold
 {
@@ -18,9 +19,15 @@ namespace WebServer.Models.DataHold
             }
         }
 
-        public static void addClient(ClientInfo client)
+        public static bool addClient(ClientInfo client)
         {
-            clientData.Add(client);
+            bool result = false;
+            if (!clientExists(client))
+            {
+                clientData.Add(client);
+                result = true;
+            }
+            return result;
         }
 
         public static bool removeClient(ClientInfo client)
@@ -51,6 +58,24 @@ namespace WebServer.Models.DataHold
                 {
                     returnVal = clientInfo;
                     break;
+                }
+            }
+            return returnVal;
+        }
+
+        public static bool updateClient(ClientInfo client)
+        {
+            bool returnVal = false;
+            if (clientExists(client))
+            {
+                for (int x = 0; x < clientData.Count; x++)
+                {
+                    if (clientData[x].clientId == client.clientId)
+                    {
+                        clientData[x] = client;
+                        returnVal = true;
+                        break;
+                    }
                 }
             }
             return returnVal;

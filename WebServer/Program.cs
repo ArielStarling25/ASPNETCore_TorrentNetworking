@@ -26,4 +26,6 @@ app.MapControllerRoute(
 DatabaseStarter.startDatabase();
 LocalDataHold.GoStart();
 
+//http://localhost:5254
+
 app.Run();

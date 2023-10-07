@@ -30,5 +30,63 @@ namespace WebServer.Controllers
                 return Ok(item);
             }
         }
+
+        //PUT: api/Client/3
+        [HttpPut("{clientId}")]
+        public IActionResult PutClient(int clientId, ClientInfo item) 
+        {
+            if(clientId != item.clientId)
+            {
+                return BadRequest();
+            }
+            else
+            {
+                if (LocalDataHold.updateClient(item))
+                {
+                    return NoContent();
+                }
+                else
+                {
+                    return NotFound(item);
+                }
+            }
+        }
+
+        //POST: api/Client
+        [HttpPost]
+        public IActionResult PostClient(ClientInfo item)
+        {
+            if(item == null)
+            {
+                return BadRequest();
+            }
+
+            if (LocalDataHold.addClient(item))
+            {
+                return NoContent();
+            }
+            else
+            {
+                return BadRequest(item);
+            }
+        }
+
+        //DELETE: api/Client
+        public IActionResult DeleteClient(ClientInfo item)
+        {
+            if(item == null)
+            {
+                return BadRequest();
+            }
+
+            if (LocalDataHold.removeClient(item))
+            {
+                return NoContent();
+            }
+            else
+            {
+                return NotFound(item);
+            }
+        }
     }
 }
