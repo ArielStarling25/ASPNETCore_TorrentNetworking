@@ -28,6 +28,7 @@ namespace ClientWPF
         private readonly string webServerHttpUrl = "http://localhost:5254";
         private string addressName = "Client-[clientId]";
         private string netAddress = "net.tcp://localhost:[clientPortNum]/";
+        ServiceHost host;
 
         //Client Data Field
         private ClientInfoMid clientInfo;
@@ -53,7 +54,7 @@ namespace ClientWPF
 
         private void miniServerT()
         {
-            ServiceHost host;
+            //ServiceHost host;
             NetTcpBinding tcp = new NetTcpBinding();
             string url = netAddress + addressName;
 
@@ -76,7 +77,7 @@ namespace ClientWPF
             host.Open();
         }
 
-        //Imbedded class for handling .net networking tasks
+        //Inner class for handling the server queries for the miniServer per client
         [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = true)]
         private class MiniClientServer : MiniClientServerInt
         {
