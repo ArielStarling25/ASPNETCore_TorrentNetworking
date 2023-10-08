@@ -16,6 +16,8 @@ using System.ServiceModel;
 
 using DataMid;
 using System.Runtime.CompilerServices;
+using RestSharp;
+using Newtonsoft.Json;
 
 namespace ClientWPF
 {
@@ -28,6 +30,8 @@ namespace ClientWPF
         private readonly string webServerHttpUrl = "http://localhost:5254";
         private string addressName = "Client-[clientId]";
         private string netAddress = "net.tcp://localhost:[clientPortNum]/";
+        MiniClientServerInt foob;
+        ChannelFactory<MiniClientServerInt> foobFactory;
         ServiceHost host;
 
         //Client Data Field
@@ -36,9 +40,11 @@ namespace ClientWPF
         //Thread Fields
         private Thread miniServerThread;
         private Thread networkingThread;
+        private Thread jobListRefresherThread;
 
         //Other Data Fields
         public List<JobPostMidcs> myJobList = new List<JobPostMidcs>();
+        private bool onGoing;
 
         public ClientWindow(int clientId, int portNum)
         {
@@ -54,27 +60,44 @@ namespace ClientWPF
 
         private void miniServerT()
         {
-            //ServiceHost host;
-            NetTcpBinding tcp = new NetTcpBinding();
-            string url = netAddress + addressName;
+            try
+            {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    NetTcpBinding tcp = new NetTcpBinding();
+                    string url = netAddress + addressName;
 
-            tcp.OpenTimeout = new TimeSpan(0, 0, 5);
-            tcp.CloseTimeout = new TimeSpan(0, 0, 5);
-            tcp.ReceiveTimeout = new TimeSpan(0, 0, 10);
-            tcp.SendTimeout = new TimeSpan(0, 0, 30);
-            tcp.MaxBufferPoolSize = 5000000; //5MB
-            tcp.MaxReceivedMessageSize = 5000000; //5MB
-            tcp.MaxBufferSize = 5000000; //5MB
-            //tcp.ReaderQuotas.MaxArrayLength = 100000;
-            //tcp.ReaderQuotas.MaxDepth = 10;
-            //tcp.ReaderQuotas.MaxBytesPerRead = 10000000; //10MB 
-            //tcp.ReaderQuotas.MaxStringContentLength = 1000000; //1MB
+                    tcp.OpenTimeout = new TimeSpan(0, 0, 5);
+                    tcp.CloseTimeout = new TimeSpan(0, 0, 5);
+                    tcp.ReceiveTimeout = new TimeSpan(0, 0, 10);
+                    tcp.SendTimeout = new TimeSpan(0, 0, 30);
+                    tcp.MaxBufferPoolSize = 5000000; //5MB
+                    tcp.MaxReceivedMessageSize = 5000000; //5MB
+                    tcp.MaxBufferSize = 5000000; //5MB
 
-            //Creates port for connection
-            MiniClientServer mini = new MiniClientServer(this);
-            host = new ServiceHost(mini);
-            host.AddServiceEndpoint(typeof(MiniClientServerInt), tcp, url);
-            host.Open();
+                    //Creates port for connection
+                    MiniClientServer mini = new MiniClientServer(this);
+                    host = new ServiceHost(mini);
+                    host.AddServiceEndpoint(typeof(MiniClientServerInt), tcp, url);
+                    host.Open();
+                }));
+            }
+            catch (ThreadAbortException tAE)
+            {
+                MessageBox.Show(tAE.Message);
+            }
+            catch (ThreadInterruptedException tIE)
+            {
+                MessageBox.Show(tIE.Message);
+            }
+            catch (TaskCanceledException tCE)
+            {
+                MessageBox.Show(tCE.Message);
+            }
+            catch (Exception eR)
+            {
+                MessageBox.Show("Fatal Error:" + eR.Message);
+            }
         }
 
         //Inner class for handling the server queries for the miniServer per client
@@ -91,17 +114,20 @@ namespace ClientWPF
             public string getJob(int clientId)
             {
                 string jobObtain = "";
-                for(int i = 0; i < context.myJobList.Count; i++)
+                if (!listIsEmpty())
                 {
-                    //if a jobItem is found to have no reciever yet
-                    if (context.myJobList[i].ToClient == null || context.myJobList[i].ToClient == 0)
+                    for (int i = 0; i < context.myJobList.Count; i++)
                     {
-                        JobPostMidcs mod = context.myJobList[i];
-                        mod.ToClient = clientId;
-                        mod.JobSuccess = 0; // In progress
-                        context.modJobList("indexMod", i, mod);
-                        jobObtain = mod.Job;
-                        break;
+                        //if a jobItem is found to have no reciever yet
+                        if (context.myJobList[i].ToClient == null || context.myJobList[i].ToClient == 0)
+                        {
+                            JobPostMidcs mod = context.myJobList[i];
+                            mod.ToClient = clientId;
+                            mod.JobSuccess = 0; // In progress
+                            context.modJobList("indexMod", i, mod);
+                            jobObtain = mod.Job;
+                            break;
+                        }
                     }
                 }
                 return jobObtain;
@@ -126,16 +152,216 @@ namespace ClientWPF
                 }
                 return returnComp;
             }
+
+            private bool listIsEmpty()
+            {
+                bool returnVal = true;
+                if(context.myJobList.Count > 0)
+                {
+                    returnVal = false;
+                }
+                return returnVal;
+            }
         }
 
         private void networkingT()
         {
+            try
+            {
+                List<ClientInfoMid> otherClients;
+                string base64PythonCode = "";
+                while (onGoingAccess(-1))
+                {
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        RestClient restClient = new RestClient(webServerHttpUrl);
+                        RestRequest req = new RestRequest("/api/client", Method.Get);
+                        RestResponse res = restClient.ExecuteGet(req);
+                        otherClients = JsonConvert.DeserializeObject<List<ClientInfoMid>>(res.Content);
+                        if (otherClients != null)
+                        {
+                            foreach (ClientInfoMid client in otherClients)
+                            {
+                                connectToClient(client.clientId, client.portNum, client.ipAddr);
+                                if (foobFactory != null)
+                                {
+                                    base64PythonCode = foob.getJob(clientInfo.clientId);
+                                    if (!base64PythonCode.Equals(""))
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
 
+                            if (!base64PythonCode.Equals(""))
+                            {
+                                //Convert and Execute
+                            }
+                        }
+                    }));
+                    Thread.Sleep(500);
+                }
+            }
+            catch (ThreadAbortException tAE)
+            {
+                MessageBox.Show(tAE.Message);
+            }
+            catch(ThreadInterruptedException tIE)
+            {
+                MessageBox.Show(tIE.Message);
+            }
+            catch(TaskCanceledException tCE)
+            {
+                MessageBox.Show(tCE.Message);
+            }
+            catch(Exception eR)
+            {
+                MessageBox.Show("Fatal Error:" + eR.Message);
+            }
+        }
+
+        private void connectToClient(int clientId, int portNum, string ip)
+        {
+            if(foobFactory != null)
+            {
+                foobFactory.Close();
+            }
+
+            NetTcpBinding tcpBinding = new NetTcpBinding();
+            tcpBinding.OpenTimeout = new TimeSpan(0, 0, 5);
+            tcpBinding.CloseTimeout = new TimeSpan(0, 0, 5);
+            tcpBinding.ReceiveTimeout = new TimeSpan(0, 0, 10);
+            tcpBinding.SendTimeout = new TimeSpan(0, 0, 30);
+            tcpBinding.MaxBufferPoolSize = 5000000; //5MB
+            tcpBinding.MaxReceivedMessageSize = 5000000; //5MB
+            tcpBinding.MaxBufferSize = 5000000; //5MB
+
+            string tcpUrl = "net.tcp://" + ip + ":" + portNum + "/Client-" + clientId;
+            foobFactory = new ChannelFactory<MiniClientServerInt>(tcpBinding, tcpUrl);
+            foob = foobFactory.CreateChannel();
+        }
+
+        private void jobListRefresherT()
+        {
+            try
+            {
+
+            }
+            catch (ThreadAbortException tAE)
+            {
+                MessageBox.Show(tAE.Message);
+            }
+            catch (ThreadInterruptedException tIE)
+            {
+                MessageBox.Show(tIE.Message);
+            }
+            catch (TaskCanceledException tCE)
+            {
+                MessageBox.Show(tCE.Message);
+            }
+            catch (Exception eR)
+            {
+                MessageBox.Show("Fatal Error:" + eR.Message);
+            }
         }
 
         private void startClient()
         {
-            
+            Label_Warning.Content = "";
+            onGoingAccess(1);
+
+            RestClient restClient = new RestClient(webServerHttpUrl);
+            RestRequest req = new RestRequest("/api/client", Method.Post);
+            req.RequestFormat = RestSharp.DataFormat.Json;
+            req.AddBody(clientInfo);
+            RestResponse response = restClient.ExecutePost(req);
+            if (!response.IsSuccessStatusCode)
+            {
+                Label_Warning.Content = "Failed to send client data to Server! Close and Reopen";
+                onGoingAccess(0);
+                Button_CloseClient.Visibility = Visibility.Collapsed;
+                Button_CloseClient.IsEnabled = false;
+            }
+            else
+            {
+                miniServerThread = new Thread(new ThreadStart(miniServerT));
+                networkingThread = new Thread(new ThreadStart(networkingT));
+                miniServerThread.Start();
+                networkingThread.Start();
+            }
+        }
+
+        public void SubmitCode_Click(object sender, RoutedEventArgs e)
+        {
+            if (!String.IsNullOrEmpty(TextBox_CodeBlock.Text))
+            {
+                JobPostMidcs jobPost = new JobPostMidcs();
+                jobPost.FromClient = clientInfo.clientId;
+                jobPost.ToClient = 0;
+                jobPost.JobSuccess = -1;
+                jobPost.Job = convertToBase64(TextBox_CodeBlock.Text);//Convert to Base64 then send
+                jobPost.JobResult = "";
+
+                modJobList("add", 0, jobPost);
+                //STOPPED HERE
+            }
+        }
+
+        private string convertToBase64(string codeBlock)
+        {
+            string base64Str = "";
+            if (!String.IsNullOrEmpty(codeBlock))
+            {
+                byte[] textBytes = Encoding.UTF8.GetBytes(codeBlock);
+                base64Str = Convert.ToBase64String(textBytes);
+            }
+            return base64Str;
+        }
+
+        private string convertToCode(string base64)
+        {
+            string code = "";
+            if (!String.IsNullOrEmpty(base64))
+            {
+                byte[] encodedBytes = Convert.FromBase64String(base64);
+                code = Encoding.UTF8.GetString(encodedBytes);
+            }
+            return code;
+        }
+
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        private bool onGoingAccess(int state)
+        {
+            //bool returnVal;
+            if(state == -1) //returns current value of onGoing
+            {
+                
+            }
+            else if(state == 0) //mod to false and returns it
+            {
+                onGoing = false;
+            }
+            else if(state == 1) //mod to true and returns it
+            {
+                onGoing = true;
+            }
+
+            return onGoing; 
+        }
+
+        public void CloseClient_Click(object sender, RoutedEventArgs e)
+        {
+            host.Close();
+            onGoingAccess(0);
+        }
+
+        private void window_closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (onGoingAccess(-1))
+            {
+                e.Cancel = true;
+                Label_Warning.Content = "Close Client Properly Please...";
+            }
         }
 
         //add, indexMod

@@ -20,5 +20,7 @@
             </ListView.ItemContainerStyle>
         </ListView>
         <Label Name="Label_Arrow1" Content="===>" HorizontalAlignment="Left" Margin="366,243,0,0" VerticalAlignment="Top" FontSize="15" FontWeight="Bold"/>
+        <Button Name="Button_CloseClient" Content="Close Client" HorizontalAlignment="Left" Margin="659,6,0,0" VerticalAlignment="Top" Height="23" Width="130" Click="CloseClient_Click"/>
+        <Label Name="Label_Warning" Content="Label" HorizontalAlignment="Left" Margin="619,244,0,0" VerticalAlignment="Top" FontSize="10" Foreground="MediumVioletRed"/>
     </Grid>
 </Window>
