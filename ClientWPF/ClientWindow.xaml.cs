@@ -303,7 +303,7 @@ namespace ClientWPF
                 jobPost.JobResult = "";
 
                 modJobList("add", 0, jobPost);
-                //STOPPED HERE
+                //STOPPED HERE ------------------
             }
         }
 
