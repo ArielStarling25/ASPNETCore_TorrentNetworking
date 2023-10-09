@@ -24,6 +24,7 @@ namespace WebServer.Data
                         "FromClient TEXT, " +
                         "ToClient TEXT, " +
                         "Job TEXT, " +
+                        "JobVariables TEXT, " +
                         "JobSuccess INTEGER, " +
                         "JobResult TEXT)";
 
@@ -56,13 +57,14 @@ namespace WebServer.Data
                     using (SQLiteCommand command = conn.CreateCommand())
                     {
                         command.CommandText = @"
-                        INSERT INTO " + tableName + " (FromClient, ToClient, Job, JobSuccess, JobResult) " +
-                        "VALUES (@FromClient, @ToClient, @Job, @JobSuccess, @JobResult)";
+                        INSERT INTO " + tableName + " (FromClient, ToClient, Job, JobVariables, JobSuccess, JobResult) " +
+                        "VALUES (@FromClient, @ToClient, @Job, @JobVariables, @JobSuccess, @JobResult)";
 
                         //command.Parameters.AddWithValue("@JobId", data.JobId);
                         command.Parameters.AddWithValue("@FromClient", data.FromClient);
                         command.Parameters.AddWithValue("@ToClient", data.ToClient);
                         command.Parameters.AddWithValue("@Job", data.Job);
+                        command.Parameters.AddWithValue("@JobVariables", data.JobVariables);
                         command.Parameters.AddWithValue("@JobSuccess", data.JobSuccess);
                         command.Parameters.AddWithValue("@JobResult", data.JobResult);
 
@@ -147,12 +149,14 @@ namespace WebServer.Data
                             " FromClient = @FromClient," +
                             " ToClient = @ToClient," +
                             " Job = @Job," +
-                            " JobSuccess = @JobSuccess" +
+                            " JobVariables = @JobVariables," +
+                            " JobSuccess = @JobSuccess," +
                             " JobResult = @JobResult" +
                             " WHERE JobId = @JobId";
                         command.Parameters.AddWithValue("@FromClient", data.FromClient);
                         command.Parameters.AddWithValue("@ToClient", data.ToClient);
                         command.Parameters.AddWithValue("@Job", data.Job);
+                        command.Parameters.AddWithValue("@JobVariables", data.JobVariables);
                         command.Parameters.AddWithValue("@JobSuccess", data.JobSuccess);
                         command.Parameters.AddWithValue("@JobResult", data.JobResult);
                         command.Parameters.AddWithValue("@JobId", data.JobId);
@@ -204,6 +208,7 @@ namespace WebServer.Data
                                 data.FromClient = Convert.ToInt32(reader["FromClient"]);
                                 data.ToClient = Convert.ToInt32(reader["ToClient"]);
                                 data.Job = reader["Job"].ToString();
+                                data.JobVariables = reader["JobVariables"].ToString();
                                 data.JobSuccess = Convert.ToInt32(reader["JobSuccess"]);
                                 data.JobResult = reader["JobResult"].ToString();
 
@@ -247,6 +252,7 @@ namespace WebServer.Data
                                 data.FromClient = Convert.ToInt32(reader["FromClient"]);
                                 data.ToClient = Convert.ToInt32(reader["ToClient"]);
                                 data.Job = reader["Job"].ToString();
+                                data.JobVariables = reader["JobVariables"].ToString();
                                 data.JobSuccess = Convert.ToInt32(reader["JobSuccess"]);
                                 data.JobResult = reader["JobResult"].ToString();
                             }
@@ -263,6 +269,50 @@ namespace WebServer.Data
                 Console.WriteLine("Exception: " + eR.Message);
             }
             return data;
+        }
+
+        public static List<JobPost> getByClientId(int clientId)
+        {
+            List<JobPost> dataList = null;
+            try
+            {
+                dataList = new List<JobPost>();
+                using (SQLiteConnection conn = new SQLiteConnection(dataSourceString))
+                {
+                    conn.Open();
+                    using (SQLiteCommand command = conn.CreateCommand())
+                    {
+                        command.CommandText = "SELECT * FROM " + tableName + " WHERE FromClient = @FromClient";
+                        command.Parameters.AddWithValue("@FromClient", clientId);
+                        using (SQLiteDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                JobPost data = new JobPost();
+                                data.JobId = Convert.ToInt32(reader["JobId"]);
+                                data.FromClient = Convert.ToInt32(reader["FromClient"]);
+                                data.ToClient = Convert.ToInt32(reader["ToClient"]);
+                                data.Job = reader["Job"].ToString();
+                                data.JobVariables = reader["JobVariables"].ToString();
+                                data.JobSuccess = Convert.ToInt32(reader["JobSuccess"]);
+                                data.JobResult = reader["JobResult"].ToString();
+
+                                dataList.Add(data);
+                            }
+                        }
+                    }
+                    conn.Close();
+                }
+            }
+            catch (SQLiteException sqlER)
+            {
+                Console.WriteLine("SQL Exception: " + sqlER.Message);
+            }
+            catch (Exception eR)
+            {
+                Console.WriteLine("Exception: " + eR.Message);
+            }
+            return dataList;
         }
     }
 }

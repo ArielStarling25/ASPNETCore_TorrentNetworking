@@ -180,22 +180,26 @@ namespace ClientWPF
                         otherClients = JsonConvert.DeserializeObject<List<ClientInfoMid>>(res.Content);
                         if (otherClients != null)
                         {
+                            bool pythonDataObtained = false;
                             foreach (ClientInfoMid client in otherClients)
                             {
                                 connectToClient(client.clientId, client.portNum, client.ipAddr);
                                 if (foobFactory != null)
                                 {
                                     base64PythonCode = foob.getJob(clientInfo.clientId);
-                                    if (!base64PythonCode.Equals(""))
+                                    if (!String.IsNullOrEmpty(base64PythonCode))
                                     {
+                                        //could probably apply hash checks here
+                                        pythonDataObtained = true;
                                         break;
                                     }
                                 }
                             }
 
-                            if (!base64PythonCode.Equals(""))
+                            if (pythonDataObtained)
                             {
                                 //Convert and Execute
+                                string pythonString = convertToCode(base64PythonCode);
                             }
                         }
                     }));
@@ -303,7 +307,6 @@ namespace ClientWPF
                 jobPost.JobResult = "";
 
                 modJobList("add", 0, jobPost);
-                //STOPPED HERE ------------------
             }
         }
 
@@ -353,6 +356,7 @@ namespace ClientWPF
         {
             host.Close();
             onGoingAccess(0);
+            //Join threads and exit
         }
 
         private void window_closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -364,17 +368,83 @@ namespace ClientWPF
             }
         }
 
+        //Sends updates to the webServer and obtains the data from webserver to update the job list
         //add, indexMod
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void modJobList(string type, int index, JobPostMidcs item)
         {
             if (type.Equals("add"))
             {
-                myJobList.Add(item);
+                //myJobList.Add(item);
+                RestClient restClient = new RestClient(webServerHttpUrl);
+                RestRequest req = new RestRequest("/api/jobpost", Method.Post);
+                req.RequestFormat = RestSharp.DataFormat.Json;
+                req.AddBody(item);
+                RestResponse response = restClient.ExecutePost(req);
+                if (response.IsSuccessStatusCode)
+                {
+                    List<JobPostMidcs> modJobList;
+                    RestClient restClient2 = new RestClient(webServerHttpUrl);
+                    RestRequest req2 = new RestRequest("/api/jobpost/getbyclient/" + clientInfo.clientId, Method.Get);
+                    RestResponse res = restClient2.ExecuteGet(req2);
+                    if (res.IsSuccessStatusCode)
+                    {
+                        modJobList = JsonConvert.DeserializeObject<List<JobPostMidcs>>(res.Content);
+                        if(modJobList != null)
+                        {
+                            myJobList = modJobList;
+                            Label_Warning.Content = "Successfully added job item to server!";
+                        }
+                        else
+                        {
+                            Label_Warning.Content = "Error occured trying to deserialise job list from server database!";
+                        }
+                    }
+                    else
+                    {
+                        Label_Warning.Content = "Failed to obtain job list from server!";
+                    }
+                }
+                else
+                {
+                    Label_Warning.Content = "Failed to post job to server!";
+                }
             }
             else if (type.Equals("indexMod"))
             {
-                myJobList[index] = item;
+                //myJobList[index] = item;
+                RestClient restClient = new RestClient(webServerHttpUrl);
+                RestRequest req = new RestRequest("/api/jobpost/" + myJobList[index].JobId, Method.Put);
+                req.RequestFormat = RestSharp.DataFormat.Json;
+                req.AddBody(item);
+                RestResponse response = restClient.ExecutePut(req);
+                if (response.IsSuccessStatusCode)
+                {
+                    List<JobPostMidcs> modJobList;
+                    RestClient restClient2 = new RestClient(webServerHttpUrl);
+                    RestRequest req2 = new RestRequest("/api/jobpost/getbyclient/" + clientInfo.clientId, Method.Get);
+                    RestResponse res = restClient2.ExecuteGet(req2);
+                    if (res.IsSuccessStatusCode)
+                    {
+                        modJobList = JsonConvert.DeserializeObject<List<JobPostMidcs>>(res.Content);
+                        if (modJobList != null)
+                        {
+                            myJobList = modJobList;
+                        }
+                        else
+                        {
+                            Label_Warning.Content = "Error occured trying to deserialise job list from server database!";
+                        }
+                    }
+                    else
+                    {
+                        Label_Warning.Content = "Failed to obtain job list from server!";
+                    }
+                }
+                else
+                {
+                    Label_Warning.Content = "Failed to update job on server database!";
+                }
             }
         }
     }

@@ -24,9 +24,9 @@ namespace WebServer.Controllers
             return null;
         }
 
-        //GET: api/JobPost/10
-        [HttpGet("{jobId}")]
-        public IActionResult GetJobPost(int jobId)
+        //GET: api/JobPost/getbyid/10
+        [HttpGet("getbyid/{jobId}")]
+        public IActionResult GetJobPostById(int jobId)
         {
             JobPost item = DatabaseM.getByJobId(jobId);
             if (item == null)
@@ -36,6 +36,21 @@ namespace WebServer.Controllers
             else
             {
                 return Ok(item);
+            }
+        }
+
+        //GET: api/JobPost/getbyclient/10
+        [HttpGet("getbyclient/{clientId}")]
+        public IActionResult GetJobPostByClient(int clientId)
+        {
+            List<JobPost> items = DatabaseM.getByClientId(clientId);
+            if (items == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(items);
             }
         }
 
@@ -76,7 +91,7 @@ namespace WebServer.Controllers
             }
             else
             {
-                if (item.FromClient.Equals(""))
+                if (item.FromClient == null || item.FromClient == 0)
                 {
                     return BadRequest();
                 }
