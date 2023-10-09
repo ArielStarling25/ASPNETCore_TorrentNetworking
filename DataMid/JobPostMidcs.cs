@@ -12,7 +12,7 @@ namespace DataMid
         public int? FromClient { get; set; }
         public int? ToClient { get; set; }
         public string Job { get; set; }
-        public List<string>? JobVariables { get; set; }
+        public string JobVariables { get; set; } // seperated by |
         public int? JobSuccess { get; set; } // -1 : Not Done, 0 : progress, 1 : Complete
         public string JobResult { get; set; }
     }

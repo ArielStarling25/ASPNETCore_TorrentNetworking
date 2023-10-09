@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="ClientWindow" Height="450" Width="800">
     <Grid>
-        <TextBox Name="TextBox_CodeBlock" HorizontalAlignment="Left" Margin="25,0,0,0" TextWrapping="Wrap" Text="Enter Python code here..." VerticalAlignment="Center" Width="340" Height="368"/>
+        <TextBox Name="TextBox_CodeBlock" HorizontalAlignment="Left" Margin="26,37,0,0" TextWrapping="Wrap" Text="Enter Python code here..." VerticalAlignment="Top" Width="340" Height="320"/>
         <Label Name="Label_Label1" Content="IronPython" HorizontalAlignment="Left" Margin="26,3,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBox_ResultOfCode" HorizontalAlignment="Left" Margin="386,291,0,0" TextWrapping="Wrap" Text="Output of python code" VerticalAlignment="Top" Width="384" Height="108"/>
         <Button Name="Button_SubmitCode" Content="Submit Code" HorizontalAlignment="Left" Margin="421,240,0,0" VerticalAlignment="Top" Height="35" Width="82" Click="SubmitCode_Click"/>
@@ -22,5 +22,7 @@
         <Label Name="Label_Arrow1" Content="===>" HorizontalAlignment="Left" Margin="366,243,0,0" VerticalAlignment="Top" FontSize="15" FontWeight="Bold"/>
         <Button Name="Button_CloseClient" Content="Close Client" HorizontalAlignment="Left" Margin="659,6,0,0" VerticalAlignment="Top" Height="23" Width="130" Click="CloseClient_Click"/>
         <Label Name="Label_Warning" Content="Label" HorizontalAlignment="Left" Margin="619,244,0,0" VerticalAlignment="Top" FontSize="10" Foreground="MediumVioletRed"/>
+        <TextBox Name="TextBox_VariableInput" HorizontalAlignment="Left" Margin="27,373,0,0" TextWrapping="Wrap" Text="Variable Input here..." VerticalAlignment="Top" Width="338" Height="24"/>
+        <Label Name="Label_VarLabel" Content="Example: var1=12|var2=4|var3=15 (For a function code taking in 3 parameters)" Margin="24,394,0,0" FontSize="10" HorizontalAlignment="Left" Width="361" Height="25" VerticalAlignment="Top" Foreground="Gray"/>
     </Grid>
 </Window>
