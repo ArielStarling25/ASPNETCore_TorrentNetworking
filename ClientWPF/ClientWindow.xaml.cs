@@ -176,9 +176,10 @@ namespace ClientWPF
             try
             {
                 List<ClientInfoMid> otherClients;
-                ClientInfoMid savedClient;
+                ClientInfoMid savedClient = null;
                 string base64PythonCode = "";
                 string base64VarStr = "";
+                int jobId = -1;
                 while (onGoingAccess(-1))
                 {
                     Dispatcher.Invoke(new Action(() =>
@@ -195,7 +196,7 @@ namespace ClientWPF
                                 connectToClient(client.clientId, client.portNum, client.ipAddr);
                                 if (foobFactory != null)
                                 {
-                                    foob.getJob(clientInfo.clientId, out base64PythonCode, out base64VarStr);
+                                    foob.getJob(clientInfo.clientId, out jobId, out base64PythonCode, out base64VarStr);
                                     if (!String.IsNullOrEmpty(base64PythonCode))
                                     {
                                         //could probably apply hash checks here
@@ -211,7 +212,7 @@ namespace ClientWPF
                                 foobFactory.Close();
                             }
 
-                            if (pythonDataObtained)
+                            if (pythonDataObtained && savedClient != null)
                             {
                                 //Convert and Execute
                                 string pythonScript = convertToCode(base64PythonCode);
@@ -346,6 +347,9 @@ namespace ClientWPF
                                                 }
                                             }
                                         }
+
+                                        finalResult = (string)resultOfScript;
+
                                     }
                                     else
                                     {
@@ -361,8 +365,18 @@ namespace ClientWPF
                                     finalResult = pyE.Message;
                                 }
 
-                                
-                                
+
+                                connectToClient(savedClient.clientId, savedClient.portNum, savedClient.ipAddr);
+                                if(foob.completeJob(clientInfo.clientId, 1, finalResult))
+                                {
+                                    foobFactory.Close();
+                                    savedClient = null;
+                                }
+                                else
+                                {
+                                    foobFactory.Close();
+                                    throw new Exception("Failed to complete a job!");
+                                }
 
                             }
                         }
