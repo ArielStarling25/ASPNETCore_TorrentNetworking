@@ -18,6 +18,9 @@ using DataMid;
 using System.Runtime.CompilerServices;
 using RestSharp;
 using Newtonsoft.Json;
+using IronPython.Hosting;
+using Microsoft.Scripting.Hosting;
+using IronPython.Runtime.Exceptions;
 
 namespace ClientWPF
 {
@@ -111,10 +114,11 @@ namespace ClientWPF
             }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
-            public void getJob(int clientId, out string base64Py, out string base64VarStr)
+            public void getJob(int clientId, out int jobId, out string base64Py, out string base64VarStr)
             {
                 base64Py = "";
                 base64VarStr = "";
+                jobId = -1;
                 if (!listIsEmpty())
                 {
                     for (int i = 0; i < context.myJobList.Count; i++)
@@ -128,6 +132,7 @@ namespace ClientWPF
                             context.modJobList("indexMod", i, mod);
                             base64Py = mod.Job;
                             base64VarStr = mod.JobVariables;
+                            jobId = mod.JobId;
                             break;
                         }
                     }
@@ -136,13 +141,13 @@ namespace ClientWPF
             }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
-            public bool completeJob(int client, int jobSucceed, string jobResult)
+            public bool completeJob(int clientId, int jobSucceed, string jobResult)
             {
                 bool returnComp = false;
                 for(int i = 0; i < context.myJobList.Count; i++)
                 {
                     //finding the job with the matching receiving client and marked as 'In progress' flag '0'
-                    if (context.myJobList[i].ToClient == client && context.myJobList[i].JobSuccess == 0)
+                    if (context.myJobList[i].ToClient == clientId && context.myJobList[i].JobSuccess == 0)
                     {
                         JobPostMidcs mod = context.myJobList[i];
                         mod.JobSuccess = jobSucceed; //Complete
@@ -171,6 +176,7 @@ namespace ClientWPF
             try
             {
                 List<ClientInfoMid> otherClients;
+                ClientInfoMid savedClient;
                 string base64PythonCode = "";
                 string base64VarStr = "";
                 while (onGoingAccess(-1))
@@ -194,35 +200,169 @@ namespace ClientWPF
                                     {
                                         //could probably apply hash checks here
                                         pythonDataObtained = true;
+                                        savedClient = client;
                                         break;
                                     }
                                 }
                             }
 
+                            if(foobFactory != null)
+                            {
+                                foobFactory.Close();
+                            }
+
                             if (pythonDataObtained)
                             {
                                 //Convert and Execute
-                                string pythonString = convertToCode(base64PythonCode);
-                                string varString = convertToCode(base64VarStr);
-                                //STOPPED HERE -----------
-                                string[] varStrSplt = varString.Split('|');
-                                int numVals = varStrSplt.Length;
-                                VarHolder[] varHolders = new VarHolder[numVals];
+                                string pythonScript = convertToCode(base64PythonCode);
+                                string[] pySplit = pythonScript.Split(' ','(');
+                                string funcName = pySplit[1]; // Should be at index 1 at least...
+                                string finalResult = "N/A";
 
-                                for(int i = 0; i < varStrSplt.Length; i++)
+                                try
                                 {
-                                    string[] splt = varStrSplt[i].Split('=');
-                                    if (int.TryParse(splt[1], out int result))
+                                    //Prepare for execution of code
+                                    VarHolder[] varHolders = new VarHolder[0];
+                                    ScriptEngine engine = Python.CreateEngine();
+                                    ScriptScope scope = engine.CreateScope();
+                                    engine.Execute(pythonScript, scope);
+
+                                    //int numVals = 0;
+                                    if (!String.IsNullOrEmpty(base64VarStr))
                                     {
-                                        varHolders[i].intValue = result;
+                                        string varString = convertToCode(base64VarStr);
+                                        string[] varStrSplt = varString.Split('|');
+                                        //numVals = varStrSplt.Length;
+                                        varHolders = new VarHolder[varStrSplt.Length];
+
+                                        for (int i = 0; i < varStrSplt.Length; i++)
+                                        {
+                                            string[] splt = varStrSplt[i].Split('=');
+                                            if (int.TryParse(splt[1], out int result))
+                                            {
+                                                varHolders[i].intValue = result;
+                                            }
+                                            else // it is a string value
+                                            {
+                                                varHolders[i].intValue = null;
+                                                varHolders[i].strValue = splt[1];
+                                            }
+                                        }
                                     }
-                                    else // it is a string value
+
+                                    //Couldnt find a more dynamic way to apply variables to the script func
+                                    //Execute code
+                                    dynamic pyFunc = scope.GetVariable(funcName);
+                                    var resultOfScript = "N/A";
+                                    if (varHolders.Length == 0)
                                     {
-                                        varHolders[i].strValue = splt[1];
+                                        resultOfScript = pyFunc();
+                                    }
+                                    else if (varHolders.Length == 1)
+                                    {
+                                        if (varHolders[0].isInt())
+                                        {
+                                            resultOfScript = pyFunc(varHolders[0].intValue);
+                                        }
+                                        else
+                                        {
+                                            resultOfScript = pyFunc(varHolders[0].strValue);
+                                        }
+                                    }
+                                    else if (varHolders.Length == 2)
+                                    {
+                                        if (varHolders[0].isInt())
+                                        {
+                                            if (varHolders[1].isInt())
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue);
+                                            }
+                                            else
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (varHolders[1].isInt())
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue);
+                                            }
+                                            else
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue);
+                                            }
+                                        }
+                                    }
+                                    else if(varHolders.Length == 3)
+                                    {
+                                        if (varHolders[0].isInt())
+                                        {
+                                            if (varHolders[1].isInt())
+                                            {
+                                                if (varHolders[2].isInt())
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].intValue);
+                                                }
+                                                else
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].strValue);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (varHolders[2].isInt())
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].intValue);
+                                                }
+                                                else
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].strValue);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (varHolders[1].isInt())
+                                            {
+                                                if (varHolders[2].isInt())
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].intValue);
+                                                }
+                                                else
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].strValue);
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (varHolders[2].isInt())
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].intValue);
+                                                }
+                                                else
+                                                {
+                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].strValue);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        throw new Exception("Too many arguments! (Max 3)");
                                     }
                                 }
+                                catch (IronPython.Runtime.Exceptions.ImportException pyIE)
+                                {
+                                    finalResult = pyIE.Message;
+                                }
+                                catch(Exception pyE)
+                                {
+                                    finalResult = pyE.Message;
+                                }
 
-                                if(numVals)
+                                
+                                
 
                             }
                         }

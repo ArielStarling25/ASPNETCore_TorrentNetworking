@@ -8,7 +8,7 @@ namespace DataMid
 {
     public class JobPostMidcs
     {
-        public int? JobId { get; set; }
+        public int JobId { get; set; }
         public int? FromClient { get; set; }
         public int? ToClient { get; set; }
         public string Job { get; set; }

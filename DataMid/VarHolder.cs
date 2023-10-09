@@ -8,7 +8,12 @@ namespace DataMid
 {
     public class VarHolder
     {
-        public int intValue {  get; set; }
+        public int? intValue {  get; set; }
         public string strValue { get; set; }
+
+        public bool isInt()
+        {
+            return intValue != null;
+        } 
     }
 }

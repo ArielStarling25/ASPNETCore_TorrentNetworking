@@ -8,10 +8,10 @@
         Title="ClientWindow" Height="450" Width="800">
     <Grid>
         <TextBox Name="TextBox_CodeBlock" HorizontalAlignment="Left" Margin="26,37,0,0" TextWrapping="Wrap" Text="Enter Python code here..." VerticalAlignment="Top" Width="340" Height="320"/>
-        <Label Name="Label_Label1" Content="IronPython" HorizontalAlignment="Left" Margin="26,3,0,0" VerticalAlignment="Top"/>
+        <Label Name="Label_Label1" Content="IronPython - Warning: Able to execute only a single python func at a time..." HorizontalAlignment="Left" Margin="26,3,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBox_ResultOfCode" HorizontalAlignment="Left" Margin="386,291,0,0" TextWrapping="Wrap" Text="Output of python code" VerticalAlignment="Top" Width="384" Height="108"/>
         <Button Name="Button_SubmitCode" Content="Submit Code" HorizontalAlignment="Left" Margin="421,240,0,0" VerticalAlignment="Top" Height="35" Width="82" Click="SubmitCode_Click"/>
-        <ListView d:ItemsSource="{d:SampleData ItemCount=5}" Margin="389,36,33,209">
+        <ListView d:ItemsSource="{d:SampleData ItemCount=5}" Margin="389,36,0,0" Height="189" VerticalAlignment="Top" HorizontalAlignment="Left" Width="378">
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="HorizontalContentAlignment" Value="Left"/>
