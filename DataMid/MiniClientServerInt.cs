@@ -12,7 +12,7 @@ namespace DataMid
     {
         //For recieveing client to obtain the job sent by the serving client
         [OperationContract]
-        string getJob(int clientId);
+        void getJob(int clientId, out string base64Py, out string base64varStr);
 
         //For recieving client to return completed task to the serving client once done
         [OperationContract]

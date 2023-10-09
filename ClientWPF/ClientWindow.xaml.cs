@@ -111,9 +111,10 @@ namespace ClientWPF
             }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
-            public string getJob(int clientId)
+            public void getJob(int clientId, out string base64Py, out string base64VarStr)
             {
-                string jobObtain = "";
+                base64Py = "";
+                base64VarStr = "";
                 if (!listIsEmpty())
                 {
                     for (int i = 0; i < context.myJobList.Count; i++)
@@ -125,12 +126,13 @@ namespace ClientWPF
                             mod.ToClient = clientId;
                             mod.JobSuccess = 0; // In progress
                             context.modJobList("indexMod", i, mod);
-                            jobObtain = mod.Job;
+                            base64Py = mod.Job;
+                            base64VarStr = mod.JobVariables;
                             break;
                         }
                     }
                 }
-                return jobObtain;
+                //return jobObtain;
             }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
@@ -170,6 +172,7 @@ namespace ClientWPF
             {
                 List<ClientInfoMid> otherClients;
                 string base64PythonCode = "";
+                string base64VarStr = "";
                 while (onGoingAccess(-1))
                 {
                     Dispatcher.Invoke(new Action(() =>
@@ -186,7 +189,7 @@ namespace ClientWPF
                                 connectToClient(client.clientId, client.portNum, client.ipAddr);
                                 if (foobFactory != null)
                                 {
-                                    base64PythonCode = foob.getJob(clientInfo.clientId);
+                                    foob.getJob(clientInfo.clientId, out base64PythonCode, out base64VarStr);
                                     if (!String.IsNullOrEmpty(base64PythonCode))
                                     {
                                         //could probably apply hash checks here
@@ -200,6 +203,27 @@ namespace ClientWPF
                             {
                                 //Convert and Execute
                                 string pythonString = convertToCode(base64PythonCode);
+                                string varString = convertToCode(base64VarStr);
+                                //STOPPED HERE -----------
+                                string[] varStrSplt = varString.Split('|');
+                                int numVals = varStrSplt.Length;
+                                VarHolder[] varHolders = new VarHolder[numVals];
+
+                                for(int i = 0; i < varStrSplt.Length; i++)
+                                {
+                                    string[] splt = varStrSplt[i].Split('=');
+                                    if (int.TryParse(splt[1], out int result))
+                                    {
+                                        varHolders[i].intValue = result;
+                                    }
+                                    else // it is a string value
+                                    {
+                                        varHolders[i].strValue = splt[1];
+                                    }
+                                }
+
+                                if(numVals)
+
                             }
                         }
                     }));
@@ -297,16 +321,29 @@ namespace ClientWPF
 
         public void SubmitCode_Click(object sender, RoutedEventArgs e)
         {
-            if (!String.IsNullOrEmpty(TextBox_CodeBlock.Text))
+            Label_Warning.Content = "";
+            if (!String.IsNullOrEmpty(TextBox_CodeBlock.Text) || !TextBox_CodeBlock.Text.Equals("Enter Python code here..."))
             {
-                JobPostMidcs jobPost = new JobPostMidcs();
-                jobPost.FromClient = clientInfo.clientId;
-                jobPost.ToClient = 0;
-                jobPost.JobSuccess = -1;
-                jobPost.Job = convertToBase64(TextBox_CodeBlock.Text);//Convert to Base64 then send
-                jobPost.JobResult = "";
+                if(!TextBox_VariableInput.Text.Equals("Variable Input here..."))
+                {
+                    JobPostMidcs jobPost = new JobPostMidcs();
+                    jobPost.FromClient = clientInfo.clientId;
+                    jobPost.ToClient = 0;
+                    jobPost.JobSuccess = -1;
+                    jobPost.Job = convertToBase64(TextBox_CodeBlock.Text);//Convert to Base64 then send
+                    jobPost.JobVariables = convertToBase64(TextBox_VariableInput.Text);
+                    jobPost.JobResult = "";
 
-                modJobList("add", 0, jobPost);
+                    modJobList("add", 0, jobPost);
+                }
+                else
+                {
+                    Label_Warning.Content = "Enter valid variable input please";
+                }
+            }
+            else
+            {
+                Label_Warning.Content = "There should be code to submit...";
             }
         }
 
