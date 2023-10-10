@@ -23,10 +23,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-//DatabaseStarter.startDatabase();
-//LocalDataHold.GoStart();
-DatabaseStarter.startAndMockDatabase();
-LocalDataHold.GoMockAndStart();
+DatabaseStarter.startDatabase();
+LocalDataHold.GoStart();
+//DatabaseStarter.startAndMockDatabase();
+//LocalDataHold.GoMockAndStart();
 
 //http://localhost:5254
 

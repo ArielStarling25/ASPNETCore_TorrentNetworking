@@ -21,6 +21,7 @@ using Newtonsoft.Json;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
 using IronPython.Runtime.Exceptions;
+using static IronPython.Modules.PythonIOModule;
 
 namespace ClientWPF
 {
@@ -48,6 +49,11 @@ namespace ClientWPF
         //Other Data Fields
         public List<JobPostMidcs> myJobList = new List<JobPostMidcs>();
         private bool onGoing;
+
+        //Data fields for buttons in GUI Job List
+        List<string> base64PyDataHolder;
+        List<string> varPyHolder;
+        List<string> resultHolder;
 
         public ClientWindow(int clientId, int portNum)
         {
@@ -425,9 +431,21 @@ namespace ClientWPF
 
         private void jobListRefresherT()
         {
+            List<JobPostMidcs> savedJobList = new List<JobPostMidcs>();
             try
             {
+                //WIP
+                while (onGoingAccess(-1))
+                {
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (!savedJobList.Equals(myJobList))
+                        {
 
+                        }
+                    }));
+                    Thread.Sleep(500);
+                }
             }
             catch (ThreadAbortException tAE)
             {
@@ -444,6 +462,149 @@ namespace ClientWPF
             catch (Exception eR)
             {
                 MessageBox.Show("Fatal Error:" + eR.Message);
+            }
+        }
+
+        private void updateGUIJobList()
+        {
+            ListView_ClientJobList.Items.Clear();
+            List<JobPostMidcs> jobList = myJobList;
+            int buttonIdCounter = 1;
+            if(jobList.Count > 0)
+            {
+                base64PyDataHolder = new List<string>();
+                varPyHolder = new List<string>();
+                resultHolder = new List<string>();
+
+                for (int i = 0; i < jobList.Count; i++)
+                {
+                    ListViewItem listItem = new ListViewItem();
+                    StackPanel itemStackHori = new StackPanel();
+                    itemStackHori.Orientation = Orientation.Horizontal;
+
+                    //Section 1
+                    StackPanel itemStackVert1 = new StackPanel();
+                    itemStackVert1.Orientation = Orientation.Vertical;
+                    TextBlock jobIdTxt = new TextBlock();
+                    jobIdTxt.Text = "Job ID: " + jobList[i].JobId.ToString();
+                    jobIdTxt.FontWeight = FontWeights.Bold;
+                    TextBlock fromClientTxt = new TextBlock();
+                    fromClientTxt.Text = "Sending Client: " + jobList[i].FromClient.ToString();
+                    TextBlock toClientTxt = new TextBlock();
+                    toClientTxt.Text = "Recieving Client: " + jobList[i].ToClient.ToString();
+                    TextBlock jobSuccessTxt = new TextBlock();
+                    jobSuccessTxt.Text = "Job Status: ";
+                    if (jobList[i].JobSuccess == -1)
+                    {
+                        jobSuccessTxt.Text += "Incomplete";
+                    }
+                    else if (jobList[i].JobSuccess == 0)
+                    {
+                        jobSuccessTxt.Text += "In Progress";
+                    }
+                    else if (jobList[i].JobSuccess == 1)
+                    {
+                        jobSuccessTxt.Text += "Complete";
+                    }
+                    else
+                    {
+                        jobSuccessTxt.Text += "Unknown";
+                    }
+
+                    itemStackVert1.Children.Add(jobIdTxt);
+                    itemStackVert1.Children.Add(fromClientTxt);
+                    itemStackVert1.Children.Add(toClientTxt);
+                    itemStackVert1.Children.Add(jobSuccessTxt);
+
+                    //Section 2
+                    StackPanel itemStackVert2 = new StackPanel();
+                    itemStackVert2.Orientation = Orientation.Vertical;
+
+                    string buttonName = "";
+                    for (int x = 0; x < buttonIdCounter; x++)
+                    {
+                        buttonName += "c";
+                    }
+
+                    Button Button_Job = new Button();
+                    Button_Job.Height = 20;
+                    Button_Job.Width = 70;
+                    Button_Job.Content = "View Code";
+                    Button_Job.HorizontalContentAlignment = HorizontalAlignment.Center;
+                    Button_Job.Name = buttonName;
+                    Button_Job.Click += new RoutedEventHandler(Job_Click);
+                    base64PyDataHolder.Add(jobList[i].Job);
+
+                    Button Button_Var = new Button();
+                    Button_Var.Height = 20;
+                    Button_Var.Width = 70;
+                    Button_Var.Content = "View Variables";
+                    Button_Var.HorizontalContentAlignment = HorizontalAlignment.Center;
+                    Button_Var.Name = buttonName;
+                    Button_Var.Click += new RoutedEventHandler(Var_Click);
+                    varPyHolder.Add(jobList[i].JobVariables);
+
+                    Button Button_Res = new Button();
+                    Button_Var.Height = 20;
+                    Button_Var.Width = 70;
+                    Button_Var.Content = "View Result";
+                    Button_Var.HorizontalContentAlignment = HorizontalAlignment.Center;
+                    Button_Var.Name = buttonName;
+                    Button_Var.Click += new RoutedEventHandler(Var_Click);
+                    varPyHolder.Add(jobList[i].JobResult);
+
+                    buttonIdCounter++;
+                    itemStackVert2.Children.Add(Button_Job);
+                    itemStackVert2.Children.Add(Button_Var);
+                    itemStackVert2.Children.Add(Button_Res);
+
+                    itemStackHori.Children.Add(itemStackVert1);
+                    itemStackHori.Children.Add(itemStackVert2);
+
+                    listItem.Content = itemStackHori;
+                    ListView_ClientJobList.Items.Add(listItem);
+                }
+            }
+        }
+
+        private void Job_Click(object sender, RoutedEventArgs e)
+        {
+            Label_Warning.Content = "";
+            Button btnAccess = (Button)sender;
+            if(btnAccess != null)
+            {
+                int btnId = btnAccess.Name.Length;
+                MessageBox.Show(convertToCode(base64PyDataHolder[btnId-1]));
+            }
+        }
+
+        private void Var_Click(object sender, RoutedEventArgs e)
+        {
+            Label_Warning.Content = "";
+            Button btnAccess = (Button)sender;
+            if (btnAccess != null)
+            {
+                int btnId = btnAccess.Name.Length;
+                MessageBox.Show(convertToCode(varPyHolder[btnId - 1]));
+            }
+        }
+
+        private void Res_Click(object sender, RoutedEventArgs e)
+        {
+            Label_Warning.Content = "";
+            Button btnAccess = (Button)sender;
+            if (btnAccess != null)
+            {
+                int btnId = btnAccess.Name.Length;
+                string result = resultHolder[btnId-1];
+                if (String.IsNullOrEmpty(result))
+                {
+                    Label_Warning.Content = " Results are not available ";
+                }
+                else
+                {
+                    MessageBox.Show(result);
+                }
             }
         }
 
@@ -545,9 +706,32 @@ namespace ClientWPF
 
         public void CloseClient_Click(object sender, RoutedEventArgs e)
         {
-            host.Close();
-            onGoingAccess(0);
-            //Join threads and exit
+            Label_Warning.Content = "";
+            RestClient restClient = new RestClient(webServerHttpUrl);
+            RestRequest req = new RestRequest("/api/client", Method.Delete);
+            req.RequestFormat = RestSharp.DataFormat.Json;
+            req.AddBody(clientInfo);
+            RestResponse res = restClient.Delete(req);
+            if (res.IsSuccessStatusCode)
+            {
+                host.Close();
+                onGoingAccess(0);
+                //Join threads and exit
+                miniServerThread.Join();
+                networkingThread.Join();
+                jobListRefresherThread.Join();
+
+                if(foobFactory != null)
+                {
+                    foobFactory.Close();
+                }
+                this.Close();
+            }
+            else
+            {
+                Label_Warning.Content = "Failed to close client!";
+            }
+            
         }
 
         private void window_closing(object sender, System.ComponentModel.CancelEventArgs e)
