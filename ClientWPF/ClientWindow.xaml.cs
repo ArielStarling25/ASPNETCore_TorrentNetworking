@@ -387,7 +387,7 @@ namespace ClientWPF
                             }
                         }
                     }));
-                    Thread.Sleep(500);
+                    Thread.Sleep(1000);
                 }
             }
             catch (ThreadAbortException tAE)
@@ -441,10 +441,11 @@ namespace ClientWPF
                     {
                         if (!savedJobList.Equals(myJobList))
                         {
-
+                            updateGUIJobList();
+                            savedJobList = myJobList;
                         }
                     }));
-                    Thread.Sleep(500);
+                    Thread.Sleep(1000);
                 }
             }
             catch (ThreadAbortException tAE)
