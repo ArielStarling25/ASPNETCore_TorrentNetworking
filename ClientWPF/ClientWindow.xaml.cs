@@ -252,7 +252,7 @@ namespace ClientWPF
                                         string[] splt = varStrSplt[i].Split('=');
                                         if (int.TryParse(splt[1], out int result))
                                         {
-                                            varHolders[i].intValue = result;
+                                            varHolders[i].intValue = result; //NULL OBJECT REFERENCE
                                         }
                                         else // it is a string value
                                         {
