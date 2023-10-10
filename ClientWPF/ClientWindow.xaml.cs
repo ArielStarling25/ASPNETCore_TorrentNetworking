@@ -434,7 +434,6 @@ namespace ClientWPF
             List<JobPostMidcs> savedJobList = new List<JobPostMidcs>();
             try
             {
-                //WIP
                 while (onGoingAccess(-1))
                 {
                     Dispatcher.Invoke(new Action(() =>
