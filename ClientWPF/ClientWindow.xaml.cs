@@ -269,17 +269,17 @@ namespace ClientWPF
                                 var resultOfScript = "N/A";
                                 if (varHolders.Length == 0)
                                 {
-                                    resultOfScript = pyFunc();
+                                    resultOfScript = Convert.ToString(pyFunc());
                                 }
                                 else if (varHolders.Length == 1)
                                 {
                                     if (varHolders[0].isInt())
                                     {
-                                        resultOfScript = pyFunc(varHolders[0].intValue);
+                                        resultOfScript = Convert.ToString(pyFunc(varHolders[0].intValue));
                                     }
                                     else
                                     {
-                                        resultOfScript = pyFunc(varHolders[0].strValue);
+                                        resultOfScript = Convert.ToString(pyFunc(varHolders[0].strValue));
                                     }
                                 }
                                 else if (varHolders.Length == 2)
