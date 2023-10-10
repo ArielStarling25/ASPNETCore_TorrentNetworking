@@ -266,7 +266,7 @@ namespace ClientWPF
                                 //Couldnt find a more dynamic way to apply variables to the script func
                                 //Execute code
                                 dynamic pyFunc = scope.GetVariable(funcName);
-                                object resultOfScript = "N/A";
+                                var resultOfScript = "N/A";
                                 if (varHolders.Length == 0)
                                 {
                                     resultOfScript = pyFunc();
