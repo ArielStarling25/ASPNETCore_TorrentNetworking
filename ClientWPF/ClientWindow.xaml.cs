@@ -250,6 +250,7 @@ namespace ClientWPF
                                     for (int i = 0; i < varStrSplt.Length; i++)
                                     {
                                         string[] splt = varStrSplt[i].Split('=');
+                                        varHolders[i] = new VarHolder();
                                         if (int.TryParse(splt[1], out int result))
                                         {
                                             varHolders[i].intValue = result; //NULL OBJECT REFERENCE
@@ -265,7 +266,7 @@ namespace ClientWPF
                                 //Couldnt find a more dynamic way to apply variables to the script func
                                 //Execute code
                                 dynamic pyFunc = scope.GetVariable(funcName);
-                                var resultOfScript = "N/A";
+                                object resultOfScript = "N/A";
                                 if (varHolders.Length == 0)
                                 {
                                     resultOfScript = pyFunc();
@@ -359,7 +360,7 @@ namespace ClientWPF
                                         }
                                     }
 
-                                    finalResult = (string)resultOfScript;
+                                    finalResult = resultOfScript.ToString();
 
                                 }
                                 else
@@ -491,6 +492,7 @@ namespace ClientWPF
                     ListViewItem listItem = new ListViewItem();
                     StackPanel itemStackHori = new StackPanel();
                     itemStackHori.Orientation = Orientation.Horizontal;
+                    itemStackHori.Margin = new Thickness(5);
 
                     //Section 1
                     StackPanel itemStackVert1 = new StackPanel();
@@ -555,13 +557,13 @@ namespace ClientWPF
                     varPyHolder.Add(jobList[i].JobVariables);
 
                     Button Button_Res = new Button();
-                    Button_Var.Height = 20;
-                    Button_Var.Width = 70;
-                    Button_Var.Content = "View Result";
-                    Button_Var.HorizontalContentAlignment = HorizontalAlignment.Center;
-                    Button_Var.Name = buttonName;
-                    Button_Var.Click += new RoutedEventHandler(Var_Click);
-                    varPyHolder.Add(jobList[i].JobResult);
+                    Button_Res.Height = 20;
+                    Button_Res.Width = 70;
+                    Button_Res.Content = "View Result";
+                    Button_Res.HorizontalContentAlignment = HorizontalAlignment.Center;
+                    Button_Res.Name = buttonName;
+                    Button_Res.Click += new RoutedEventHandler(Res_Click);
+                    resultHolder.Add(jobList[i].JobResult);
 
                     buttonIdCounter++;
                     itemStackVert2.Children.Add(Button_Job);
@@ -646,6 +648,7 @@ namespace ClientWPF
                 miniServerThread.Start();
                 networkingThread.Start();
                 jobListRefresherThread.Start();
+                modJobList("get", 0, null);
             }
         }
 
@@ -760,7 +763,7 @@ namespace ClientWPF
         }
 
         //Sends updates to the webServer and obtains the data from webserver to update the job list
-        //add, indexMod
+        //add, indexMod, get
         [MethodImpl(MethodImplOptions.Synchronized)]
         public void modJobList(string type, int index, JobPostMidcs item)
         {
@@ -835,6 +838,29 @@ namespace ClientWPF
                 else
                 {
                     Label_Warning.Content = "Failed to update job on server database!";
+                }
+            }
+            else if (type.Equals("get"))
+            {
+                List<JobPostMidcs> modJobList;
+                RestClient restClient2 = new RestClient(webServerHttpUrl);
+                RestRequest req2 = new RestRequest("/api/jobpost/getbyclient/" + clientInfo.clientId, Method.Get);
+                RestResponse res = restClient2.ExecuteGet(req2);
+                if (res.IsSuccessStatusCode)
+                {
+                    modJobList = JsonConvert.DeserializeObject<List<JobPostMidcs>>(res.Content);
+                    if (modJobList != null)
+                    {
+                        myJobList = modJobList;
+                    }
+                    else
+                    {
+                        Label_Warning.Content = "Error occured trying to deserialise job list from server database!";
+                    }
+                }
+                else
+                {
+                    Label_Warning.Content = "Failed to obtain job list from server!";
                 }
             }
         }
