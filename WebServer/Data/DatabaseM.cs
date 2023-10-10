@@ -1,5 +1,6 @@
 ﻿using System.Data.SQLite;
 using WebServer.Models.DataModels;
+using DataMid;
 
 namespace WebServer.Data
 {
@@ -46,7 +47,7 @@ namespace WebServer.Data
             return returnVal;
         }
 
-        public static bool insert(JobPost data)
+        public static bool insert(JobPostMidcs data)
         {
             bool returnVal = false;
             try
@@ -134,7 +135,7 @@ namespace WebServer.Data
             return returnVal;
         }
 
-        public static bool update(JobPost data)
+        public static bool update(JobPostMidcs data)
         {
             bool returnVal = false;
             try
@@ -187,12 +188,12 @@ namespace WebServer.Data
             return returnVal;
         }
 
-        public static List<JobPost> getAll()
+        public static List<JobPostMidcs> getAll()
         {
-            List<JobPost> dataList = null;
+            List<JobPostMidcs> dataList = null;
             try
             {
-                dataList = new List<JobPost>();
+                dataList = new List<JobPostMidcs>();
                 using (SQLiteConnection conn = new SQLiteConnection(dataSourceString))
                 {
                     conn.Open();
@@ -203,7 +204,7 @@ namespace WebServer.Data
                         {
                             while (reader.Read())
                             {
-                                JobPost data = new JobPost();
+                                JobPostMidcs data = new JobPostMidcs();
                                 data.JobId = Convert.ToInt32(reader["JobId"]);
                                 data.FromClient = Convert.ToInt32(reader["FromClient"]);
                                 data.ToClient = Convert.ToInt32(reader["ToClient"]);
@@ -230,9 +231,9 @@ namespace WebServer.Data
             return dataList;
         }
 
-        public static JobPost getByJobId(int JobId)
+        public static JobPostMidcs getByJobId(int JobId)
         {
-            JobPost data = null;
+            JobPostMidcs data = null;
             try
             {
                 using (SQLiteConnection conn = new SQLiteConnection(dataSourceString))
@@ -247,7 +248,7 @@ namespace WebServer.Data
                         {
                             if (reader.Read())
                             {
-                                data = new JobPost();
+                                data = new JobPostMidcs();
                                 data.JobId = Convert.ToInt32(reader["JobId"]);
                                 data.FromClient = Convert.ToInt32(reader["FromClient"]);
                                 data.ToClient = Convert.ToInt32(reader["ToClient"]);
@@ -271,12 +272,12 @@ namespace WebServer.Data
             return data;
         }
 
-        public static List<JobPost> getByClientId(int clientId)
+        public static List<JobPostMidcs> getByClientId(int clientId)
         {
-            List<JobPost> dataList = null;
+            List<JobPostMidcs> dataList = null;
             try
             {
-                dataList = new List<JobPost>();
+                dataList = new List<JobPostMidcs>();
                 using (SQLiteConnection conn = new SQLiteConnection(dataSourceString))
                 {
                     conn.Open();
@@ -288,7 +289,7 @@ namespace WebServer.Data
                         {
                             while (reader.Read())
                             {
-                                JobPost data = new JobPost();
+                                JobPostMidcs data = new JobPostMidcs();
                                 data.JobId = Convert.ToInt32(reader["JobId"]);
                                 data.FromClient = Convert.ToInt32(reader["FromClient"]);
                                 data.ToClient = Convert.ToInt32(reader["ToClient"]);

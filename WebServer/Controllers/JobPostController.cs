@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebServer.Data;
 using WebServer.Models.DataModels;
+using DataMid;
 
 namespace WebServer.Controllers
 {
@@ -11,9 +12,9 @@ namespace WebServer.Controllers
     {
         //GET: api/JobPost
         [HttpGet]
-        public IEnumerable<JobPost> GetJobPosts()
+        public IEnumerable<JobPostMidcs> GetJobPosts()
         {
-            List<JobPost> list = DatabaseM.getAll();
+            List<JobPostMidcs> list = DatabaseM.getAll();
             if (list != null)
             {
                 if (list.Count > 0)
@@ -28,7 +29,7 @@ namespace WebServer.Controllers
         [HttpGet("getbyid/{jobId}")]
         public IActionResult GetJobPostById(int jobId)
         {
-            JobPost item = DatabaseM.getByJobId(jobId);
+            JobPostMidcs item = DatabaseM.getByJobId(jobId);
             if (item == null)
             {
                 return NotFound();
@@ -43,7 +44,7 @@ namespace WebServer.Controllers
         [HttpGet("getbyclient/{clientId}")]
         public IActionResult GetJobPostByClient(int clientId)
         {
-            List<JobPost> items = DatabaseM.getByClientId(clientId);
+            List<JobPostMidcs> items = DatabaseM.getByClientId(clientId);
             if (items == null)
             {
                 return NotFound();
@@ -56,7 +57,7 @@ namespace WebServer.Controllers
 
         //PUT: api/JobPost/10
         [HttpPut("{jobId}")]
-        public IActionResult PutJobPost(int jobId, JobPost item)
+        public IActionResult PutJobPost(int jobId, JobPostMidcs item)
         {
             if (item == null)
             {
@@ -83,7 +84,7 @@ namespace WebServer.Controllers
         
         //POST: api/JobPost
         [HttpPost]
-        public IActionResult PostJobPost(JobPost item)
+        public IActionResult PostJobPost(JobPostMidcs item)
         {
             if(item == null)
             {
@@ -91,7 +92,7 @@ namespace WebServer.Controllers
             }
             else
             {
-                if (item.FromClient == null || item.FromClient == 0)
+                if (item.FromClient == 0)
                 {
                     return BadRequest();
                 }

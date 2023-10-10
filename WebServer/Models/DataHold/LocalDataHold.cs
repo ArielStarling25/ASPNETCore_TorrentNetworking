@@ -1,41 +1,42 @@
 ﻿using WebServer.Models.DataModels;
 using WebServer.Data;
 using System.Diagnostics.CodeAnalysis;
+using DataMid;
 
 namespace WebServer.Models.DataHold
 {
     public class LocalDataHold
     {
-        private static List<ClientInfo> clientData;
-        private static List<JobPost> jobPostData;
+        private static List<ClientInfoMid> clientData;
+        private static List<JobPostMidcs> jobPostData;
 
         public static void GoStart()
         {
-            clientData = new List<ClientInfo>();
+            clientData = new List<ClientInfoMid>();
             jobPostData = DatabaseM.getAll();
             if(jobPostData == null)
             {
-                jobPostData = new List<JobPost>();
+                jobPostData = new List<JobPostMidcs>();
             }
         }
 
         public static void GoMockAndStart() 
         {
-            clientData = new List<ClientInfo>();
+            clientData = new List<ClientInfoMid>();
 
-            ClientInfo c1 = new ClientInfo();
+            ClientInfoMid c1 = new ClientInfoMid();
             c1.clientId = 01;
             c1.ipAddr = "net.tcp://localhost:";
             c1.portNum = 1000;
             clientData.Add(c1);
 
-            ClientInfo c2 = new ClientInfo();
+            ClientInfoMid c2 = new ClientInfoMid();
             c2.clientId = 02;
             c2.ipAddr = "net.tcp://localhost:";
             c2.portNum = 2000;
             clientData.Add(c2);
 
-            ClientInfo c3 = new ClientInfo();
+            ClientInfoMid c3 = new ClientInfoMid();
             c3.clientId = 03;
             c3.ipAddr = "net.tcp://localhost:";
             c3.portNum = 3000;
@@ -44,11 +45,11 @@ namespace WebServer.Models.DataHold
             jobPostData = DatabaseM.getAll();
             if (jobPostData == null)
             {
-                jobPostData = new List<JobPost>();
+                jobPostData = new List<JobPostMidcs>();
             }
         }
 
-        public static bool addClient(ClientInfo client)
+        public static bool addClient(ClientInfoMid client)
         {
             bool result = false;
             if (!clientExists(client))
@@ -59,15 +60,25 @@ namespace WebServer.Models.DataHold
             return result;
         }
 
-        public static bool removeClient(ClientInfo client)
+        public static bool removeClient(ClientInfoMid client)
         {
-            return clientData.Remove(client);
+            bool result = false;
+            for(int i = 0; i < clientData.Count; i++)
+            {
+                if (clientData[i].clientId == client.clientId)
+                {
+                    clientData.RemoveAt(i);
+                    result = true;
+                    break;
+                }
+            }
+            return result;
         }
 
-        public static bool clientExists(ClientInfo client)
+        public static bool clientExists(ClientInfoMid client)
         {
             bool returnVal = false;
-            foreach(ClientInfo clientInfo in clientData)
+            foreach(ClientInfoMid clientInfo in clientData)
             {
                 if (clientInfo.clientId == client.clientId)
                 {
@@ -78,10 +89,10 @@ namespace WebServer.Models.DataHold
             return returnVal;
         }
 
-        public static ClientInfo getClientById(int clientId)
+        public static ClientInfoMid getClientById(int clientId)
         {
-            ClientInfo returnVal = null;
-            foreach(ClientInfo clientInfo in clientData)
+            ClientInfoMid returnVal = null;
+            foreach(ClientInfoMid clientInfo in clientData)
             {
                 if (clientInfo.clientId == clientId)
                 {
@@ -92,7 +103,7 @@ namespace WebServer.Models.DataHold
             return returnVal;
         }
 
-        public static bool updateClient(ClientInfo client)
+        public static bool updateClient(ClientInfoMid client)
         {
             bool returnVal = false;
             if (clientExists(client))
@@ -110,12 +121,12 @@ namespace WebServer.Models.DataHold
             return returnVal;
         }
 
-        public static void addJobPost(JobPost jobPost)
+        public static void addJobPost(JobPostMidcs jobPost)
         {
             jobPostData.Add(jobPost);
         }
 
-        public static List<ClientInfo> GetClients()
+        public static List<ClientInfoMid> GetClients()
         {
             return clientData;
         }

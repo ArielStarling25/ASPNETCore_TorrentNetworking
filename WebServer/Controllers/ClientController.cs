@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WebServer.Models.DataModels;
 using WebServer.Models.DataHold;
+using DataMid;
 
 namespace WebServer.Controllers
 {
@@ -11,7 +12,7 @@ namespace WebServer.Controllers
     {
         //GET: api/Client
         [HttpGet]
-        public IEnumerable<ClientInfo> GetClients()
+        public IEnumerable<ClientInfoMid> GetClients()
         {
             return LocalDataHold.GetClients();
         }
@@ -20,7 +21,7 @@ namespace WebServer.Controllers
         [HttpGet("{clientId}")]
         public IActionResult GetClient(int clientId)
         {
-            ClientInfo item = LocalDataHold.getClientById(clientId);
+            ClientInfoMid item = LocalDataHold.getClientById(clientId);
             if(item == null)
             {
                 return NotFound();
@@ -33,7 +34,7 @@ namespace WebServer.Controllers
 
         //PUT: api/Client/3
         [HttpPut("{clientId}")]
-        public IActionResult PutClient(int clientId, ClientInfo item) 
+        public IActionResult PutClient(int clientId, ClientInfoMid item) 
         {
             if(clientId != item.clientId)
             {
@@ -54,7 +55,7 @@ namespace WebServer.Controllers
 
         //POST: api/Client
         [HttpPost]
-        public IActionResult PostClient(ClientInfo item)
+        public IActionResult PostClient(ClientInfoMid item)
         {
             if(item == null)
             {
@@ -72,7 +73,8 @@ namespace WebServer.Controllers
         }
 
         //DELETE: api/Client
-        public IActionResult DeleteClient(ClientInfo item)
+        [HttpDelete]
+        public IActionResult DeleteClient(ClientInfoMid item)
         {
             if(item == null)
             {

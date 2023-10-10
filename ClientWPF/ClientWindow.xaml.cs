@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.ServiceModel;
+using System.Runtime.Serialization;
 
 using DataMid;
 using System.Runtime.CompilerServices;
@@ -78,18 +79,30 @@ namespace ClientWPF
 
                     tcp.OpenTimeout = new TimeSpan(0, 0, 5);
                     tcp.CloseTimeout = new TimeSpan(0, 0, 5);
-                    tcp.ReceiveTimeout = new TimeSpan(0, 0, 10);
+                    tcp.ReceiveTimeout = new TimeSpan(0, 0, 20);
                     tcp.SendTimeout = new TimeSpan(0, 0, 30);
                     tcp.MaxBufferPoolSize = 5000000; //5MB
                     tcp.MaxReceivedMessageSize = 5000000; //5MB
                     tcp.MaxBufferSize = 5000000; //5MB
+                    tcp.ReaderQuotas.MaxArrayLength = 10000;
+                    tcp.ReaderQuotas.MaxDepth = 100;
+                    tcp.ReaderQuotas.MaxBytesPerRead = 100000;
+                    tcp.ReaderQuotas.MaxStringContentLength = 1000000;
 
                     //Creates port for connection
                     MiniClientServer mini = new MiniClientServer(this);
                     host = new ServiceHost(mini);
                     host.AddServiceEndpoint(typeof(MiniClientServerInt), tcp, url);
+                    
                     host.Open();
                 }));
+
+                while (onGoingAccess(-1))
+                {
+                    Thread.Sleep(1000);
+                }
+                host.Close();
+
             }
             catch (ThreadAbortException tAE)
             {
@@ -110,8 +123,8 @@ namespace ClientWPF
         }
 
         //Inner class for handling the server queries for the miniServer per client
-        [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = true)]
-        private class MiniClientServer : MiniClientServerInt
+        [ServiceBehavior(ConcurrencyMode = ConcurrencyMode.Multiple, UseSynchronizationContext = true, InstanceContextMode=InstanceContextMode.Single)]
+        internal class MiniClientServer : MiniClientServerInt
         {
             private ClientWindow context;
             public MiniClientServer(ClientWindow context)
@@ -125,7 +138,7 @@ namespace ClientWPF
                 base64Py = "";
                 base64VarStr = "";
                 jobId = -1;
-                if (!listIsEmpty())
+                if (context.myJobList.Count > 0)
                 {
                     for (int i = 0; i < context.myJobList.Count; i++)
                     {
@@ -143,7 +156,6 @@ namespace ClientWPF
                         }
                     }
                 }
-                //return jobObtain;
             }
 
             [MethodImpl(MethodImplOptions.Synchronized)]
@@ -165,16 +177,6 @@ namespace ClientWPF
                 }
                 return returnComp;
             }
-
-            private bool listIsEmpty()
-            {
-                bool returnVal = true;
-                if(context.myJobList.Count > 0)
-                {
-                    returnVal = false;
-                }
-                return returnVal;
-            }
         }
 
         private void networkingT()
@@ -188,16 +190,18 @@ namespace ClientWPF
                 int jobId = -1;
                 while (onGoingAccess(-1))
                 {
-                    Dispatcher.Invoke(new Action(() =>
+                    //Dispatcher.Invoke(new Action(() =>
+                    
+                    RestClient restClient = new RestClient(webServerHttpUrl);
+                    RestRequest req = new RestRequest("/api/client", Method.Get);
+                    RestResponse res = restClient.ExecuteGet(req);
+                    otherClients = JsonConvert.DeserializeObject<List<ClientInfoMid>>(res.Content);
+                    if (otherClients != null)
                     {
-                        RestClient restClient = new RestClient(webServerHttpUrl);
-                        RestRequest req = new RestRequest("/api/client", Method.Get);
-                        RestResponse res = restClient.ExecuteGet(req);
-                        otherClients = JsonConvert.DeserializeObject<List<ClientInfoMid>>(res.Content);
-                        if (otherClients != null)
+                        bool pythonDataObtained = false;
+                        foreach (ClientInfoMid client in otherClients)
                         {
-                            bool pythonDataObtained = false;
-                            foreach (ClientInfoMid client in otherClients)
+                            if (client.clientId != clientInfo.clientId)
                             {
                                 connectToClient(client.clientId, client.portNum, client.ipAddr);
                                 if (foobFactory != null)
@@ -212,181 +216,182 @@ namespace ClientWPF
                                     }
                                 }
                             }
+                        }
 
-                            if(foobFactory != null)
+                        if (foobFactory != null)
+                        {
+                            foobFactory.Close();
+                        }
+
+                        if (pythonDataObtained && savedClient != null)
+                        {
+                            //Convert and Execute
+                            string pythonScript = convertToCode(base64PythonCode);
+                            string[] pySplit = pythonScript.Split(' ', '(');
+                            string funcName = pySplit[1]; // Should be at index 1 at least...
+                            string finalResult = "N/A";
+
+                            try
                             {
-                                foobFactory.Close();
-                            }
+                                //Prepare for execution of code
+                                VarHolder[] varHolders = new VarHolder[0];
+                                ScriptEngine engine = Python.CreateEngine();
+                                ScriptScope scope = engine.CreateScope();
+                                engine.Execute(pythonScript, scope);
 
-                            if (pythonDataObtained && savedClient != null)
-                            {
-                                //Convert and Execute
-                                string pythonScript = convertToCode(base64PythonCode);
-                                string[] pySplit = pythonScript.Split(' ','(');
-                                string funcName = pySplit[1]; // Should be at index 1 at least...
-                                string finalResult = "N/A";
-
-                                try
+                                //int numVals = 0;
+                                if (!String.IsNullOrEmpty(base64VarStr))
                                 {
-                                    //Prepare for execution of code
-                                    VarHolder[] varHolders = new VarHolder[0];
-                                    ScriptEngine engine = Python.CreateEngine();
-                                    ScriptScope scope = engine.CreateScope();
-                                    engine.Execute(pythonScript, scope);
+                                    string varString = convertToCode(base64VarStr);
+                                    string[] varStrSplt = varString.Split('|');
+                                    //numVals = varStrSplt.Length;
+                                    varHolders = new VarHolder[varStrSplt.Length];
 
-                                    //int numVals = 0;
-                                    if (!String.IsNullOrEmpty(base64VarStr))
+                                    for (int i = 0; i < varStrSplt.Length; i++)
                                     {
-                                        string varString = convertToCode(base64VarStr);
-                                        string[] varStrSplt = varString.Split('|');
-                                        //numVals = varStrSplt.Length;
-                                        varHolders = new VarHolder[varStrSplt.Length];
-
-                                        for (int i = 0; i < varStrSplt.Length; i++)
+                                        string[] splt = varStrSplt[i].Split('=');
+                                        if (int.TryParse(splt[1], out int result))
                                         {
-                                            string[] splt = varStrSplt[i].Split('=');
-                                            if (int.TryParse(splt[1], out int result))
-                                            {
-                                                varHolders[i].intValue = result;
-                                            }
-                                            else // it is a string value
-                                            {
-                                                varHolders[i].intValue = null;
-                                                varHolders[i].strValue = splt[1];
-                                            }
+                                            varHolders[i].intValue = result;
+                                        }
+                                        else // it is a string value
+                                        {
+                                            varHolders[i].intValue = null;
+                                            varHolders[i].strValue = splt[1];
                                         }
                                     }
+                                }
 
-                                    //Couldnt find a more dynamic way to apply variables to the script func
-                                    //Execute code
-                                    dynamic pyFunc = scope.GetVariable(funcName);
-                                    var resultOfScript = "N/A";
-                                    if (varHolders.Length == 0)
+                                //Couldnt find a more dynamic way to apply variables to the script func
+                                //Execute code
+                                dynamic pyFunc = scope.GetVariable(funcName);
+                                var resultOfScript = "N/A";
+                                if (varHolders.Length == 0)
+                                {
+                                    resultOfScript = pyFunc();
+                                }
+                                else if (varHolders.Length == 1)
+                                {
+                                    if (varHolders[0].isInt())
                                     {
-                                        resultOfScript = pyFunc();
-                                    }
-                                    else if (varHolders.Length == 1)
-                                    {
-                                        if (varHolders[0].isInt())
-                                        {
-                                            resultOfScript = pyFunc(varHolders[0].intValue);
-                                        }
-                                        else
-                                        {
-                                            resultOfScript = pyFunc(varHolders[0].strValue);
-                                        }
-                                    }
-                                    else if (varHolders.Length == 2)
-                                    {
-                                        if (varHolders[0].isInt())
-                                        {
-                                            if (varHolders[1].isInt())
-                                            {
-                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue);
-                                            }
-                                            else
-                                            {
-                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (varHolders[1].isInt())
-                                            {
-                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue);
-                                            }
-                                            else
-                                            {
-                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue);
-                                            }
-                                        }
-                                    }
-                                    else if(varHolders.Length == 3)
-                                    {
-                                        if (varHolders[0].isInt())
-                                        {
-                                            if (varHolders[1].isInt())
-                                            {
-                                                if (varHolders[2].isInt())
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].intValue);
-                                                }
-                                                else
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].strValue);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (varHolders[2].isInt())
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].intValue);
-                                                }
-                                                else
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].strValue);
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (varHolders[1].isInt())
-                                            {
-                                                if (varHolders[2].isInt())
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].intValue);
-                                                }
-                                                else
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].strValue);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (varHolders[2].isInt())
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].intValue);
-                                                }
-                                                else
-                                                {
-                                                    resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].strValue);
-                                                }
-                                            }
-                                        }
-
-                                        finalResult = (string)resultOfScript;
-
+                                        resultOfScript = pyFunc(varHolders[0].intValue);
                                     }
                                     else
                                     {
-                                        throw new Exception("Too many arguments! (Max 3)");
+                                        resultOfScript = pyFunc(varHolders[0].strValue);
                                     }
                                 }
-                                catch (IronPython.Runtime.Exceptions.ImportException pyIE)
+                                else if (varHolders.Length == 2)
                                 {
-                                    finalResult = pyIE.Message;
+                                    if (varHolders[0].isInt())
+                                    {
+                                        if (varHolders[1].isInt())
+                                        {
+                                            resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue);
+                                        }
+                                        else
+                                        {
+                                            resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (varHolders[1].isInt())
+                                        {
+                                            resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue);
+                                        }
+                                        else
+                                        {
+                                            resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue);
+                                        }
+                                    }
                                 }
-                                catch(Exception pyE)
+                                else if (varHolders.Length == 3)
                                 {
-                                    finalResult = pyE.Message;
-                                }
+                                    if (varHolders[0].isInt())
+                                    {
+                                        if (varHolders[1].isInt())
+                                        {
+                                            if (varHolders[2].isInt())
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].intValue);
+                                            }
+                                            else
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].strValue);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (varHolders[2].isInt())
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].intValue);
+                                            }
+                                            else
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].strValue);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (varHolders[1].isInt())
+                                        {
+                                            if (varHolders[2].isInt())
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].intValue);
+                                            }
+                                            else
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].strValue);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (varHolders[2].isInt())
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].intValue);
+                                            }
+                                            else
+                                            {
+                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].strValue);
+                                            }
+                                        }
+                                    }
 
+                                    finalResult = (string)resultOfScript;
 
-                                connectToClient(savedClient.clientId, savedClient.portNum, savedClient.ipAddr);
-                                if(foob.completeJob(clientInfo.clientId, 1, finalResult))
-                                {
-                                    foobFactory.Close();
-                                    savedClient = null;
                                 }
                                 else
                                 {
-                                    foobFactory.Close();
-                                    throw new Exception("Failed to complete a job!");
+                                    throw new Exception("Too many arguments! (Max 3)");
                                 }
-
                             }
+                            catch (IronPython.Runtime.Exceptions.ImportException pyIE)
+                            {
+                                finalResult = pyIE.Message;
+                            }
+                            catch (Exception pyE)
+                            {
+                                finalResult = pyE.Message;
+                            }
+
+
+                            connectToClient(savedClient.clientId, savedClient.portNum, savedClient.ipAddr);
+                            if (foob.completeJob(clientInfo.clientId, 1, finalResult))
+                            {
+                                foobFactory.Close();
+                                savedClient = null;
+                            }
+                            else
+                            {
+                                foobFactory.Close();
+                                throw new Exception("Failed to complete a job!");
+                            }
+
                         }
-                    }));
+                    } 
+                    //}));
                     Thread.Sleep(1000);
                 }
             }
@@ -408,6 +413,7 @@ namespace ClientWPF
             }
         }
 
+        [MethodImpl(MethodImplOptions.Synchronized)]
         private void connectToClient(int clientId, int portNum, string ip)
         {
             if(foobFactory != null)
@@ -418,11 +424,15 @@ namespace ClientWPF
             NetTcpBinding tcpBinding = new NetTcpBinding();
             tcpBinding.OpenTimeout = new TimeSpan(0, 0, 5);
             tcpBinding.CloseTimeout = new TimeSpan(0, 0, 5);
-            tcpBinding.ReceiveTimeout = new TimeSpan(0, 0, 10);
+            tcpBinding.ReceiveTimeout = new TimeSpan(0, 0, 20);
             tcpBinding.SendTimeout = new TimeSpan(0, 0, 30);
             tcpBinding.MaxBufferPoolSize = 5000000; //5MB
             tcpBinding.MaxReceivedMessageSize = 5000000; //5MB
             tcpBinding.MaxBufferSize = 5000000; //5MB
+            tcpBinding.ReaderQuotas.MaxArrayLength = 10000;
+            tcpBinding.ReaderQuotas.MaxDepth = 100;
+            tcpBinding.ReaderQuotas.MaxBytesPerRead = 100000;
+            tcpBinding.ReaderQuotas.MaxStringContentLength = 1000000;
 
             string tcpUrl = "net.tcp://" + ip + ":" + portNum + "/Client-" + clientId;
             foobFactory = new ChannelFactory<MiniClientServerInt>(tcpBinding, tcpUrl);
@@ -603,7 +613,10 @@ namespace ClientWPF
                 }
                 else
                 {
-                    MessageBox.Show(result);
+                    TextBox_CodeBlock.Text = convertToCode(base64PyDataHolder[btnId-1]);
+                    TextBox_VariableInput.Text = convertToCode(varPyHolder[btnId-1]);
+                    TextBox_ResultOfCode.Text = result;
+                    //MessageBox.Show(result);
                 }
             }
         }
@@ -629,8 +642,10 @@ namespace ClientWPF
             {
                 miniServerThread = new Thread(new ThreadStart(miniServerT));
                 networkingThread = new Thread(new ThreadStart(networkingT));
+                jobListRefresherThread = new Thread(new ThreadStart(jobListRefresherT));
                 miniServerThread.Start();
                 networkingThread.Start();
+                jobListRefresherThread.Start();
             }
         }
 
@@ -711,10 +726,10 @@ namespace ClientWPF
             RestRequest req = new RestRequest("/api/client", Method.Delete);
             req.RequestFormat = RestSharp.DataFormat.Json;
             req.AddBody(clientInfo);
-            RestResponse res = restClient.Delete(req);
+            RestResponse res = restClient.Execute(req);
             if (res.IsSuccessStatusCode)
             {
-                host.Close();
+                //host.Close();
                 onGoingAccess(0);
                 //Join threads and exit
                 miniServerThread.Join();
@@ -730,6 +745,7 @@ namespace ClientWPF
             else
             {
                 Label_Warning.Content = "Failed to close client!";
+                MessageBox.Show(res.Content);
             }
             
         }
