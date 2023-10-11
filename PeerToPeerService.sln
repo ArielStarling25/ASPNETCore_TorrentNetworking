@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientWPF", "ClientWPF\Clie
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataMid", "DataMid\DataMid.csproj", "{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSiteViewer", "WebSiteViewer\WebSiteViewer.csproj", "{CEA26965-F0A7-40B2-B7EB-E08905A79A1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CF4F6DBD-49D5-4AEF-84B7-C0EFD3110050}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEA26965-F0A7-40B2-B7EB-E08905A79A1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEA26965-F0A7-40B2-B7EB-E08905A79A1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEA26965-F0A7-40B2-B7EB-E08905A79A1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEA26965-F0A7-40B2-B7EB-E08905A79A1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

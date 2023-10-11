@@ -128,7 +128,14 @@ namespace WebServer.Models.DataHold
 
         public static List<ClientInfoMid> GetClients()
         {
-            return clientData;
+            if(clientData.Count > 0)
+            {
+                return clientData;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

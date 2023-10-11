@@ -1,0 +1,26 @@
+﻿@{
+    string message = ViewBag.message;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>@ViewBag.Title</title>
+        <link rel="stylesheet" href="~/css/site.css">
+    </head>
+    <body>
+        <div id="header">
+            <h2 id="headerTitle"> Peer-To-Peer Status Web Viewer </h2>
+        </div>
+    
+        <div id="main">
+            @RenderBody()
+        </div>
+
+        <div id="footer">
+            <p> Website created by Ariel Starling (700041728 / 20688936) </p>
+        </div>
+        
+        <script src="~/js/site.js"></script>
+    </body>
+</html>

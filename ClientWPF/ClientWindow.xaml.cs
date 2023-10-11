@@ -507,11 +507,11 @@ namespace ClientWPF
                     ListViewItem listItem = new ListViewItem();
                     StackPanel itemStackHori = new StackPanel();
                     itemStackHori.Orientation = Orientation.Horizontal;
-                    itemStackHori.Margin = new Thickness(5);
 
                     //Section 1
                     StackPanel itemStackVert1 = new StackPanel();
                     itemStackVert1.Orientation = Orientation.Vertical;
+                    itemStackVert1.Margin = new Thickness(5);
                     TextBlock jobIdTxt = new TextBlock();
                     jobIdTxt.Text = "Job ID: " + jobList[i].JobId.ToString();
                     jobIdTxt.FontWeight = FontWeights.Bold;
@@ -546,6 +546,7 @@ namespace ClientWPF
                     //Section 2
                     StackPanel itemStackVert2 = new StackPanel();
                     itemStackVert2.Orientation = Orientation.Vertical;
+                    itemStackVert2.Margin = new Thickness(5);
 
                     string buttonName = "";
                     for (int x = 0; x < buttonIdCounter; x++)
