@@ -12,9 +12,17 @@ namespace WebServer.Controllers
     {
         //GET: api/Client
         [HttpGet]
-        public IEnumerable<ClientInfoMid> GetClients()
+        public IActionResult GetClients()
         {
-            return LocalDataHold.GetClients();
+            List<ClientInfoMid> data = LocalDataHold.GetClients();
+            if(data == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                return Ok(data);
+            }
         }
 
         //GET: api/Client/3
