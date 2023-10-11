@@ -21,7 +21,7 @@ function getSwamData() {
 
     //Creating a dynamic list of clients and jobs
     function generateListItem(dataObject) {
-
+        //W I P
     }
 
     //Performing get data
@@ -42,14 +42,29 @@ function getSwamData() {
                         return response2.json();
                     })
                     .then(data2 => {
-                        const parsedData = JSON.parse(data);
+                        const parsedDataClient = JSON.parse(data);
+                        const parsedDataJob = JSON.parse(data2);
                         const tempData = dataHolder;
-                        for (let i = 0; i < parsedData.length; i++) {
-                            tempData.clientId = parsedData[i].clientId;
-                            tempData.ipAddr = parsedData[i].ipAddr;
-                            tempData.portNum = parsedData[i].portNum;
+                        let count;
+                        for (let i = 0; i < parsedDataClient.length; i++) {
+                            count = 0;
+                            tempData.clientId = parsedDataClient[i].clientId;
+                            tempData.ipAddr = parsedDataClient[i].ipAddr;
+                            tempData.portNum = parsedDataClient[i].portNum;
+
+                            //Counting the number of jobs the client has done for other clients
+                            for (let j = 0; j < parsedDataJob.length; j++) {
+                                if (parsedDataJob[i].ToClient == tempData.clientId) {
+                                    count++;
+                                }
+                            }
+                            tempData.completedJobs = count;
+                            generateListItem(tempData);
                         }
                     })
+                    .catch(error2 => {
+                        console.error("Error occured: ", error);
+                    });
             })
             .catch(error => {
                 console.error("Error occurred: ", error);
