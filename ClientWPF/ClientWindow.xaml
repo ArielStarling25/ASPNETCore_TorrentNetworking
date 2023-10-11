@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientWPF"
         mc:Ignorable="d"
-        Title="ClientWindow" Height="450" Width="800">
+        Title="ClientWindow" Height="450" Width="800" Closing="window_closing">
     <Grid>
         <TextBox Name="TextBox_CodeBlock" HorizontalAlignment="Left" Margin="26,37,0,0" TextWrapping="Wrap" Text="Enter Python code here..." VerticalAlignment="Top" Width="340" Height="320" AcceptsTab="True" AcceptsReturn="True"/>
         <Label Name="Label_Label1" Content="IronPython - Warning: Able to execute only a single python func at a time..." HorizontalAlignment="Left" Margin="26,3,0,0" VerticalAlignment="Top"/>

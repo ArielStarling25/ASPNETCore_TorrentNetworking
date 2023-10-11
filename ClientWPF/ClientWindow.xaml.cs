@@ -253,7 +253,7 @@ namespace ClientWPF
                                         varHolders[i] = new VarHolder();
                                         if (int.TryParse(splt[1], out int result))
                                         {
-                                            varHolders[i].intValue = result; //NULL OBJECT REFERENCE
+                                            varHolders[i].intValue = result; 
                                         }
                                         else // it is a string value
                                         {
@@ -266,20 +266,23 @@ namespace ClientWPF
                                 //Couldnt find a more dynamic way to apply variables to the script func
                                 //Execute code
                                 dynamic pyFunc = scope.GetVariable(funcName);
-                                var resultOfScript = "N/A";
+                                //var resultOfScript = "N/A";
                                 if (varHolders.Length == 0)
                                 {
-                                    resultOfScript = Convert.ToString(pyFunc());
+                                    var resultOfScript = pyFunc();
+                                    finalResult = Convert.ToString(resultOfScript);
                                 }
                                 else if (varHolders.Length == 1)
                                 {
                                     if (varHolders[0].isInt())
                                     {
-                                        resultOfScript = Convert.ToString(pyFunc(varHolders[0].intValue));
+                                        var resultOfScript = pyFunc(varHolders[0].intValue);
+                                        finalResult = Convert.ToString(resultOfScript);
                                     }
                                     else
                                     {
-                                        resultOfScript = Convert.ToString(pyFunc(varHolders[0].strValue));
+                                        var resultOfScript = pyFunc(varHolders[0].strValue);
+                                        finalResult = Convert.ToString(resultOfScript);
                                     }
                                 }
                                 else if (varHolders.Length == 2)
@@ -288,22 +291,26 @@ namespace ClientWPF
                                     {
                                         if (varHolders[1].isInt())
                                         {
-                                            resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue);
+                                            var resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue);
+                                            finalResult = Convert.ToString(resultOfScript);
                                         }
                                         else
                                         {
-                                            resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue);
+                                            var resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue);
+                                            finalResult = Convert.ToString(resultOfScript);
                                         }
                                     }
                                     else
                                     {
                                         if (varHolders[1].isInt())
                                         {
-                                            resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue);
+                                            var resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue);
+                                            finalResult = Convert.ToString(resultOfScript);
                                         }
                                         else
                                         {
-                                            resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue);
+                                            var resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue);
+                                            finalResult = Convert.ToString(resultOfScript);
                                         }
                                     }
                                 }
@@ -315,22 +322,26 @@ namespace ClientWPF
                                         {
                                             if (varHolders[2].isInt())
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].intValue);
+                                                var resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].intValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                             else
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].strValue);
+                                                var resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].intValue, varHolders[2].strValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                         }
                                         else
                                         {
                                             if (varHolders[2].isInt())
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].intValue);
+                                                var resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].intValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                             else
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].strValue);
+                                                var resultOfScript = pyFunc(varHolders[0].intValue, varHolders[1].strValue, varHolders[2].strValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                         }
                                     }
@@ -340,27 +351,31 @@ namespace ClientWPF
                                         {
                                             if (varHolders[2].isInt())
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].intValue);
+                                                var resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].intValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                             else
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].strValue);
+                                                var resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].intValue, varHolders[2].strValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                         }
                                         else
                                         {
                                             if (varHolders[2].isInt())
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].intValue);
+                                                var resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].intValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                             else
                                             {
-                                                resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].strValue);
+                                                var resultOfScript = pyFunc(varHolders[0].strValue, varHolders[1].strValue, varHolders[2].strValue);
+                                                finalResult = Convert.ToString(resultOfScript);
                                             }
                                         }
                                     }
 
-                                    finalResult = resultOfScript.ToString();
+                                    //finalResult = resultOfScript;
 
                                 }
                                 else
